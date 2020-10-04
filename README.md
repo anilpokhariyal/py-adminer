@@ -1,2 +1,2 @@
 # pydb
-py base ORM
+py based database view like adminer
