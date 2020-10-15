@@ -12,7 +12,15 @@
 <div class="container-fluid">
     <div class="row bg-warning">
         <div class="col-md-2"><h3>PyAdminer<sub>0.1</sub></h3></div>
-        <div class="col-md-10"><h3>Login</h3></div>
+        <div class="col-md-10">
+            {% if not login %}
+            <h3>Login</h3>
+            {% elif tables %}
+            <h3>Tables</h3>
+            {% elif databases %}
+            <h3>Databases</h3>
+            {% endif %}
+        </div>
     </div>
     <div class="row">
         <div class="col-md-2">
@@ -59,8 +67,8 @@
                     </div>
                 </div>
             </form>
-        {% else %}
-            <table class="table table-bordered">
+        {% elif tables %}
+            <table class="table table-bordered mt-4 datatable">
                 <thead>
                     <tr>
                         <th>Tables</th>
@@ -70,7 +78,25 @@
                 <tbody>
                 {% for table in tables %}
                     <tr>
-                        <td>{{table}}</td>
+                        <td>{{table[0]}}</td>
+                        <td></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% elif databases %}
+            <table class="table table-bordered mt-4 datatable">
+                <thead>
+                    <tr>
+                        <th>Databases</th>
+                        <th>Engine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for database in databases %}
+                    <tr>
+                        <td><a href="?database={{database[0]}}">{{database[0]}}</a></td>
+                        <td></td>
                     </tr>
                 {% endfor %}
                 </tbody>

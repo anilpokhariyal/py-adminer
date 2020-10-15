@@ -66,16 +66,13 @@ def py_admin():
             database = request.args.get('database')
             query(connection, "use "+str(database)+';')
             tables = query(connection, "SHOW TABLES;")
-            databases.append([database])
-        else:
-            databases = query(connection, "SHOW DATABASES")
+        databases = query(connection, "SHOW DATABASES")
 
         # required in case query fails
         if databases:
             session['pass'] = True
             login = True
-            
-    app.logger.warning(tables)
+
     return render_template('py_adminer.html', py_admin_url="/py_adminer", login=login, databases=databases,
                            tables=tables)
 
