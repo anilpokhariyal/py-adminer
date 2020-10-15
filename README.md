@@ -1,2 +1,2 @@
-# pydb
-py based database view like adminer
+# PyAdminer
+Python based database view like adminer on flask.
