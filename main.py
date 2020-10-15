@@ -61,7 +61,10 @@ def py_admin():
             return redirect('/py_adminer?database=' + request.form.get('database'))
     # for mysql engine connection
     if 'system' in session and session['system'] == 'mysql':
-        connection = mysql_connection()
+        try:
+            connection = mysql_connection()
+        except ConnectionError as ex:
+            return redirect('/')
         if request.args.get('database'):
             database = request.args.get('database')
             query(connection, "use "+str(database)+';')
