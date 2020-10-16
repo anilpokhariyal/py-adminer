@@ -45,9 +45,13 @@ def py_admin():
     it works the same way for python."""
     databases = []
     tables = []
+    table_structure = []
+    table_data = []
+    table_columns = []
     login = False
     selected_db = None
     selected_table = None
+    action = request.args.get('action', None)
     if 'pass' in session:
         login = True
 
@@ -82,8 +86,32 @@ def py_admin():
             query(connection, "use information_schema;")
             table_query = "SELECT TABLE_NAME, ENGINE,TABLE_ROWS, DATA_LENGTH, INDEX_LENGTH," \
                           " AUTO_INCREMENT, TABLE_COLLATION, TABLE_COMMENT " \
-                          " FROM TABLES WHERE TABLE_SCHEMA = '"+database+"';"
+                          " FROM TABLES WHERE TABLE_SCHEMA = '"+database+"'"
             tables = query(connection, table_query)
+
+        # fetching table data and structure
+        if selected_db and request.args.get('table') and not action:
+            table_name = str(request.args.get('table'))
+            selected_table = table_name
+            query(connection, "use information_schema;")
+            structure_query = "SELECT COLUMN_NAME,IS_NULLABLE,COLUMN_DEFAULT,COLUMN_TYPE,COLUMN_KEY,EXTRA,COLUMN_COMMENT FROM COLUMNS " \
+                              " WHERE TABLE_NAME='"+table_name+"' AND TABLE_SCHEMA='"+selected_db+"' ORDER BY ORDINAL_POSITION ASC"
+            table_structure = query(connection, structure_query)
+            # todo index and foreign keys
+
+        # fetching table data
+        if selected_db and request.args.get('table') and action:
+            table_name = str(request.args.get('table'))
+            selected_table = table_name
+            limit = 100
+            query(connection, "use information_schema;")
+            col_query = "SELECT COLUMN_NAME FROM COLUMNS " \
+                        " WHERE TABLE_NAME='"+table_name+"' " \
+                        " AND TABLE_SCHEMA='"+selected_db+"'"
+            table_columns = query(connection, col_query)
+            query(connection, "use "+selected_db)
+            data_query = "SELECT * FROM "+selected_table+" LIMIT "+str(limit)
+            table_data = query(connection, data_query)
 
         # required in case query fails
         if databases:
@@ -91,7 +119,9 @@ def py_admin():
             login = True
 
     return render_template('py_adminer.html', py_admin_url="/py_adminer", login=login, databases=databases,
-                           tables=tables, selected_db=selected_db)
+                           tables=tables, table_structure=table_structure, table_data=table_data,
+                           table_columns=table_columns,
+                           selected_db=selected_db,selected_table=selected_table)
 
 
 if __name__ == '__main__':

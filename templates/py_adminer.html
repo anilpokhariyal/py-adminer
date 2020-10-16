@@ -16,7 +16,11 @@
             {% if not login %}
             <h3>Login</h3>
             {% elif tables %}
-            <h3>Tables</h3>
+            {% if selected_table %}
+                <h3>Table : {{selected_table}}</h3>
+            {% else %}
+                <h3>Tables</h3>
+            {% endif %}
             {% elif databases %}
             <h3>Databases</h3>
             {% endif %}
@@ -48,6 +52,22 @@
             </ul>
         </div>
         <div class="col-md-10">
+        {% if selected_table %}
+            <div class="row mt-4">
+                <span class="col-md-1">
+                    <a href="?database={{selected_db}}&table={{selected_table}}">
+                        Structure
+                    </a>
+                </span>
+                <span class="col-md-1">
+                    <a href="?database={{selected_db}}&table={{selected_table}}&action=data">
+                        Data
+                    </a>
+                </span>
+                <span class="col-md-1">Alter</span>
+                <span class="col-md-1">New</span>
+            </div>
+        {% endif %}
         {% if not login %}
             <form method="POST" name="login" action="{{py_admin_url}}">
                 <div class="col-md-4 mt-4">
@@ -83,7 +103,7 @@
                     </div>
                 </div>
             </form>
-        {% elif tables %}
+        {% elif tables and not selected_table %}
             <table class="table table-bordered mt-4 datatable">
                 <thead>
                     <tr>
@@ -116,7 +136,7 @@
                 {% endfor %}
                 </tbody>
             </table>
-        {% elif databases %}
+        {% elif databases and not selected_db %}
             <table class="table table-bordered mt-4 datatable">
                 <thead>
                     <tr>
@@ -136,6 +156,59 @@
                     </tr>
                 {% endfor %}
                 </tbody>
+            </table>
+        {% elif selected_db and selected_table and table_structure %}
+            <table class="table table-bordered mt-4 datatable">
+                <thead>
+                    <tr>
+                        <th>Column</th>
+                        <th>Type</th>
+                        <th>Key</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for structure in table_structure %}
+                    <tr>
+                        <td>{{structure['COLUMN_NAME']}}</td>
+                        <td>
+                            {{structure['COLUMN_TYPE']}}
+                            {% if structure['IS_NULLABLE']=='YES' %}
+                                NULL
+                            {% endif %}
+                            {% if structure['COLUMN_DEFAULT'] %}
+                                [{{structure['COLUMN_DEFAULT']}}]
+                            {% endif %}
+
+                            {{structure['EXTRA']}}
+
+                        </td>
+                        <td>{{structure['COLUMN_KEY']}}</td>
+                        <td>{{structure['COLUMN_COMMENT']}}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% elif selected_db and selected_table and table_data %}
+            <table class="table table-bordered mt-4">
+                <thead>
+                    <tr>
+                        {% for column in table_columns %}
+                        <th>
+                            {{column['COLUMN_NAME']}}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                {% for data in table_data %}
+                    <tr>
+                        {% for column in table_columns %}
+                        <td>
+                            {{data[column['COLUMN_NAME']]}}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
             </table>
         {% endif %}
         </div>
