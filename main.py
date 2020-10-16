@@ -1,5 +1,5 @@
 from flask import Flask, request, session, render_template, abort, redirect
-from flask_mysqldb import MySQL
+from flask_mysqldb import MySQL, MySQLdb
 import os, logging
 
 app = Flask(__name__)
@@ -25,11 +25,10 @@ def mysql_config():
 
 
 def query(connection, query):
-    cursor = connection.cursor()
+    cursor = connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute(query)
     connection.commit()
-    data = cursor.fetchall()
-    return data
+    return cursor
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -47,6 +46,8 @@ def py_admin():
     databases = []
     tables = []
     login = False
+    selected_db = None
+    selected_table = None
     if 'pass' in session:
         login = True
 
@@ -61,23 +62,36 @@ def py_admin():
             return redirect('/py_adminer?database=' + request.form.get('database'))
     # for mysql engine connection
     if 'system' in session and session['system'] == 'mysql':
-        connection = mysql_connection()
+        try:
+            connection = mysql_connection()
+        except ConnectionError as ex:
+            return redirect('/')
+
+        # fetching databases information
+        query(connection, "use information_schema;")
+        db_query = "SELECT SCHEMATA.SCHEMA_NAME,SCHEMATA.DEFAULT_COLLATION_NAME," \
+                   "count(TABLES.TABLE_NAME) as TABLES_COUNT,sum(TABLES.DATA_LENGTH) as SCHEMA_SIZE FROM SCHEMATA" \
+                   " JOIN TABLES ON TABLES.TABLE_SCHEMA = SCHEMATA.SCHEMA_NAME " \
+                   "GROUP BY TABLES.TABLE_SCHEMA"
+        databases = query(connection, db_query)
+
+        # fetching tables from selected database
         if request.args.get('database'):
-            database = request.args.get('database')
-            query(connection, "use "+str(database)+';')
-            tables = query(connection, "SHOW TABLES;")
-            databases.append([database])
-        else:
-            databases = query(connection, "SHOW DATABASES")
+            database = str(request.args.get('database'))
+            selected_db = database
+            query(connection, "use information_schema;")
+            table_query = "SELECT TABLE_NAME, ENGINE,TABLE_ROWS, DATA_LENGTH, INDEX_LENGTH," \
+                          " AUTO_INCREMENT, TABLE_COLLATION, TABLE_COMMENT " \
+                          " FROM TABLES WHERE TABLE_SCHEMA = '"+database+"';"
+            tables = query(connection, table_query)
 
         # required in case query fails
         if databases:
             session['pass'] = True
             login = True
-            
-    app.logger.warning(tables)
+
     return render_template('py_adminer.html', py_admin_url="/py_adminer", login=login, databases=databases,
-                           tables=tables)
+                           tables=tables, selected_db=selected_db)
 
 
 if __name__ == '__main__':

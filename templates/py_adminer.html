@@ -12,15 +12,39 @@
 <div class="container-fluid">
     <div class="row bg-warning">
         <div class="col-md-2"><h3>PyAdminer<sub>0.1</sub></h3></div>
-        <div class="col-md-10"><h3>Login</h3></div>
+        <div class="col-md-10">
+            {% if not login %}
+            <h3>Login</h3>
+            {% elif tables %}
+            <h3>Tables</h3>
+            {% elif databases %}
+            <h3>Databases</h3>
+            {% endif %}
+        </div>
     </div>
     <div class="row">
         <div class="col-md-2">
             <h4>Databases</h4>
-            <ul style="list-style: none; padding: 0 !important;">
+            {% if login %}
+                <select class="form-control" onchange="location.href='?database='+this.value">
+                    {% for database in databases %}
+                    <option value="{{database['SCHEMA_NAME']}}" {% if selected_db==database['SCHEMA_NAME'] %} selected {% endif %}>
+                        {{database['SCHEMA_NAME']}}
+                    </option>>
+                    {% endfor %}
+                </select>
+            {% endif %}
+
+            <ul class="pt-4" style="list-style: none; padding-left: 2px !important;">
+            {% if not selected_db %}
                 {% for database in databases %}
-                    <li> <a href="?database={{database[0]}}">{{database[0]}}</a></li>
+                    <li> <a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></li>
                 {% endfor %}
+            {% else %}
+                {% for table in tables %}
+                    <li> <a href="?database={{selected_db}}&table={{table['TABLE_NAME']}}">{{table['TABLE_NAME']}}</a></li>
+                {% endfor %}
+            {% endif %}
             </ul>
         </div>
         <div class="col-md-10">
@@ -35,15 +59,15 @@
                     </div>
                     <div class="form-group">
                         <label class="col-md-3">Server</label>
-                        <input type="text"  placeholder="localhost" name="server">
+                        <input type="text"  placeholder="localhost" name="server" value="laradock_mysql_1">
                     </div>
                     <div class="form-group">
                         <label class="col-md-3">Username</label>
-                        <input type="text" name="username" >
+                        <input type="text" name="username" value="root">
                     </div>
                     <div class="form-group">
                         <label class="col-md-3">Password</label>
-                        <input type="password" name="password" >
+                        <input type="password" name="password" value="root">
                     </div>
                     <div class="form-group">
                         <label class="col-md-3">Database</label>
@@ -59,18 +83,56 @@
                     </div>
                 </div>
             </form>
-        {% else %}
-            <table class="table table-bordered">
+        {% elif tables %}
+            <table class="table table-bordered mt-4 datatable">
                 <thead>
                     <tr>
                         <th>Tables</th>
                         <th>Engine</th>
+                        <th>Collection</th>
+                        <th>Rows</th>
+                        <th>Data Length</th>
+                        <th>Index Length</th>
+                        <th>Auto Increment</th>
+                        <th>Comment</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for table in tables %}
                     <tr>
-                        <td>{{table}}</td>
+                        <td>
+                            <a href="?database={{selected_db}}&table={{table['TABLE_NAME']}}">
+                            {{table['TABLE_NAME']}}
+                            </a>
+                        </td>
+                        <td>{{table['ENGINE']}}</td>
+                        <td>{{table['TABLE_COLLATION']}}</td>
+                        <td>{{table['TABLE_ROWS']}}</td>
+                        <td>{{table['DATA_LENGTH']}}</td>
+                        <td>{{table['INDEX_LENGTH']}}</td>
+                        <td>{{table['AUTO_INCREMENT']}}</td>
+                        <td>{{table['TABLE_COMMENT']}}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% elif databases %}
+            <table class="table table-bordered mt-4 datatable">
+                <thead>
+                    <tr>
+                        <th>Databases</th>
+                        <th>Collation</th>
+                        <th>Tables</th>
+                        <th>Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for database in databases %}
+                    <tr>
+                        <td><a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></td>
+                        <td>{{database['DEFAULT_COLLATION_NAME']}}</td>
+                        <td>{{database['TABLES_COUNT']}}</td>
+                        <td>{{database['SCHEMA_SIZE']}}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
