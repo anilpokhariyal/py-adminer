@@ -48,10 +48,12 @@ def py_admin():
     table_structure = []
     table_data = []
     table_columns = []
+    mysql_version = 0
     login = False
     selected_db = None
     selected_table = None
     action = request.args.get('action', None)
+    create = request.args.get('create',None)
     if 'pass' in session:
         login = True
 
@@ -79,6 +81,10 @@ def py_admin():
                    "GROUP BY TABLES.TABLE_SCHEMA"
         databases = query(connection, db_query)
 
+        # fetching mysql version
+        mysql_version = query(connection, "select version() as version;")
+        for version in mysql_version:
+            mysql_version = version
         # fetching tables from selected database
         if request.args.get('database'):
             database = str(request.args.get('database'))
@@ -119,6 +125,7 @@ def py_admin():
             login = True
 
     return render_template('py_adminer.html', py_admin_url="/py_adminer", login=login, databases=databases,
+                           mysql_version=mysql_version, create=create,
                            tables=tables, table_structure=table_structure, table_data=table_data,
                            table_columns=table_columns,
                            selected_db=selected_db,selected_table=selected_table)

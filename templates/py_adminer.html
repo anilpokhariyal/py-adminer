@@ -72,6 +72,19 @@
                 <span class="col-md-1">New</span>
             </div>
         {% endif %}
+        {% if databases and not selected_db %}
+            <div class="row mt-4">
+                <strong class="ml-4">Mysql version : {{mysql_version['version']}} Using MySQLdb in Python</strong>
+            </div>
+            <div class="row mt-4">
+                <span class="col-md-2">
+                    <a href="?create=database">
+                        Create Database
+                    </a>
+                </span>
+            </div>
+        {% endif %}
+
         {% if not login %}
             <form method="POST" name="login" action="{{py_admin_url}}">
                 <div class="col-md-4 mt-4">
