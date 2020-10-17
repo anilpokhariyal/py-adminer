@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+### PyAdminer ###############################################
+    py-adminer:
+      build:
+        context: ../
+        dockerfile: docker/Dockerfile
+      networks:
+        - laradock_backend
+      container_name: py-adminer
+      environment:
+        - ENVIRONMENT=DEVELOPMENT
+      volumes: ['/var/www/py_adminer:/app']
+      ports:
+        - '4500:5000'
+
+networks:
+  laradock_backend:
+    external:
+      name: laradock_backend
