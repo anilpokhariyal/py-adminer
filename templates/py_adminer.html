@@ -7,6 +7,9 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
 </head>
 <body>
 <div class="container-fluid">
@@ -31,6 +34,7 @@
             <h4>Databases</h4>
             {% if login %}
                 <select class="form-control" onchange="location.href='?database='+this.value">
+                    <option value="">All</option>
                     {% for database in databases %}
                     <option value="{{database['SCHEMA_NAME']}}" {% if selected_db==database['SCHEMA_NAME'] %} selected {% endif %}>
                         {{database['SCHEMA_NAME']}}
@@ -53,7 +57,7 @@
         </div>
         <div class="col-md-10">
         {% if selected_table %}
-            <div class="row mt-4">
+            <div class="row mt-4 mb-4">
                 <span class="col-md-1">
                     <a href="?database={{selected_db}}&table={{selected_table}}">
                         Structure
@@ -190,7 +194,7 @@
                 </tbody>
             </table>
         {% elif selected_db and selected_table and table_data %}
-            <table class="table table-bordered mt-4">
+            <table class="table table-bordered mt-4" id="datatable">
                 <thead>
                     <tr>
                         {% for column in table_columns %}
@@ -214,5 +218,10 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+    $(document).ready(function (){
+       $('#datatable').DataTable();
+    });
+</script>
 </body>
 </html>

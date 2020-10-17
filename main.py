@@ -103,7 +103,7 @@ def py_admin():
         if selected_db and request.args.get('table') and action:
             table_name = str(request.args.get('table'))
             selected_table = table_name
-            limit = 100
+            limit = 1000
             query(connection, "use information_schema;")
             col_query = "SELECT COLUMN_NAME FROM COLUMNS " \
                         " WHERE TABLE_NAME='"+table_name+"' " \
