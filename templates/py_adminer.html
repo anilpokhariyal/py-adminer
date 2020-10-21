@@ -128,15 +128,27 @@
             <div class="row mt-4 p-4">
                 <h4 class="col-md-12 bg-warning p-2">Create Database</h4>
                 <div class="col-md-12 mt-4">
-                    <span class="col-md-4"><input type="text" name="database_name" placeholder="database name"></span>
+                    <form method="POST" name="create_database" action="/create_database">
                     <span class="col-md-4">
+                        <input type="text" name="database_name" placeholder="database name" required>
+                    </span>
+                    <span class="col-md-6">
                         <select name="database_collection" style="width: 200px; height: 30px;">
                             <option value="">(collection)</option>
+                            {% for key, collations in db_collations.items() %}
+                                <optgroup label="{{key}}">
+                                    {{key}}
+                                {% for collation in collations %}
+                                    <option value="{{collation['COLLATION_NAME'],key}}">{{collation['COLLATION_NAME']}}</option>
+                                {% endfor %}
+                                </optgroup>
+                            {% endfor %}
                         </select>
                     </span>
-                    <span class="col-md-4">
-                        <button class="btn btn-info">Save</button>
+                    <span class="col-md-2">
+                        <button type="submit" class="btn btn-info">Save</button>
                     </span>
+                    </form>
                 </div>
             </div>
         {% elif tables and not selected_table %}
