@@ -47,8 +47,10 @@ def create_database():
 
         db_name = request.form.get('database_name')
         collation = eval(request.form.get('database_collection'))
-        app.logger.info(collation)
-        create_db = "CREATE DATABASE "+db_name+" CHARACTER SET "+collation[1]+" COLLATE "+collation[0]+";"
+        create_db = "CREATE DATABASE "+db_name
+        if collation:
+            create_db += " CHARACTER SET "+collation[1]+" COLLATE "+collation[0]+";"
+        app.logger.info(create_db)
         query(connection, create_db)
         return redirect('/')
 
@@ -94,8 +96,8 @@ def py_admin():
         query(connection, "use information_schema;")
         db_query = "SELECT SCHEMATA.SCHEMA_NAME,SCHEMATA.DEFAULT_COLLATION_NAME," \
                    "count(TABLES.TABLE_NAME) as TABLES_COUNT,sum(TABLES.DATA_LENGTH) as SCHEMA_SIZE FROM SCHEMATA" \
-                   " JOIN TABLES ON TABLES.TABLE_SCHEMA = SCHEMATA.SCHEMA_NAME " \
-                   "GROUP BY TABLES.TABLE_SCHEMA"
+                   " LEFT JOIN TABLES ON TABLES.TABLE_SCHEMA = SCHEMATA.SCHEMA_NAME " \
+                   "GROUP BY SCHEMATA.SCHEMA_NAME"
         databases = query(connection, db_query)
 
         # fetching mysql version

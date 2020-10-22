@@ -134,7 +134,7 @@
                     </span>
                     <span class="col-md-6">
                         <select name="database_collection" style="width: 200px; height: 30px;">
-                            <option value="">(collection)</option>
+                            <option value="('utf8_general_ci','utf8')">(collection)</option>
                             {% for key, collations in db_collations.items() %}
                                 <optgroup label="{{key}}">
                                     {{key}}
