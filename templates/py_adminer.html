@@ -15,6 +15,7 @@
 <div class="container-fluid">
     <div class="row bg-warning">
         <div class="col-md-2"><h3>PyAdminer<sub>0.1</sub></h3></div>
+        <!--options starts here-->
         <div class="col-md-10">
             {% if not login %}
             <h3>Login</h3>
@@ -28,8 +29,10 @@
             <h3>Databases</h3>
             {% endif %}
         </div>
+        <!-- options ends here-->
     </div>
     <div class="row">
+        <!-- sidebar -->
         <div class="col-md-2">
             <h4>Databases</h4>
             {% if login %}
@@ -55,6 +58,7 @@
             {% endif %}
             </ul>
         </div>
+        <!-- sidebar ends here-->
         <div class="col-md-10">
         {% if selected_table %}
             <div class="row mt-4 mb-4">
@@ -72,6 +76,19 @@
                 <span class="col-md-1">New</span>
             </div>
         {% endif %}
+        {% if not create and databases and not selected_db %}
+            <div class="row mt-4">
+                <strong class="ml-4">Mysql version : {{mysql_version['version']}} Using MySQLdb in Python</strong>
+            </div>
+            <div class="row mt-4">
+                <span class="col-md-2">
+                    <a href="?create=database">
+                        Create Database
+                    </a>
+                </span>
+            </div>
+        {% endif %}
+        <!-- mysql data and structure-->
         {% if not login %}
             <form method="POST" name="login" action="{{py_admin_url}}">
                 <div class="col-md-4 mt-4">
@@ -107,6 +124,33 @@
                     </div>
                 </div>
             </form>
+        {% elif create and create == 'database' %}
+            <div class="row mt-4 p-4">
+                <h4 class="col-md-12 bg-warning p-2">Create Database</h4>
+                <div class="col-md-12 mt-4">
+                    <form method="POST" name="create_database" action="/create_database">
+                    <span class="col-md-4">
+                        <input type="text" name="database_name" placeholder="database name" required>
+                    </span>
+                    <span class="col-md-6">
+                        <select name="database_collection" style="width: 200px; height: 30px;">
+                            <option value="('utf8_general_ci','utf8')">(collection)</option>
+                            {% for key, collations in db_collations.items() %}
+                                <optgroup label="{{key}}">
+                                    {{key}}
+                                {% for collation in collations %}
+                                    <option value="{{collation['COLLATION_NAME'],key}}">{{collation['COLLATION_NAME']}}</option>
+                                {% endfor %}
+                                </optgroup>
+                            {% endfor %}
+                        </select>
+                    </span>
+                    <span class="col-md-2">
+                        <button type="submit" class="btn btn-info">Save</button>
+                    </span>
+                    </form>
+                </div>
+            </div>
         {% elif tables and not selected_table %}
             <table class="table table-bordered mt-4 datatable">
                 <thead>

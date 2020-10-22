@@ -37,6 +37,24 @@ def home():
     return redirect('/py_adminer')
 
 
+@app.route("/create_database", methods=["POST"])
+def create_database():
+    if 'system' in session and session['system'] == 'mysql':
+        try:
+            connection = mysql_connection()
+        except ConnectionError as ex:
+            return redirect('/')
+
+        db_name = request.form.get('database_name')
+        collation = eval(request.form.get('database_collection'))
+        create_db = "CREATE DATABASE "+db_name
+        if collation:
+            create_db += " CHARACTER SET "+collation[1]+" COLLATE "+collation[0]+";"
+        app.logger.info(create_db)
+        query(connection, create_db)
+        return redirect('/')
+
+
 @app.route("/py_adminer", methods=["GET", "POST"])
 def py_admin():
     """PyAdminer provide you web interface to manage your database.
@@ -44,14 +62,17 @@ def py_admin():
     most useful for those users who are familiar with php adminer tool.
     it works the same way for python."""
     databases = []
+    db_collations = {}
     tables = []
     table_structure = []
     table_data = []
     table_columns = []
+    mysql_version = 0
     login = False
     selected_db = None
     selected_table = None
     action = request.args.get('action', None)
+    create = request.args.get('create', None)
     if 'pass' in session:
         login = True
 
@@ -75,10 +96,14 @@ def py_admin():
         query(connection, "use information_schema;")
         db_query = "SELECT SCHEMATA.SCHEMA_NAME,SCHEMATA.DEFAULT_COLLATION_NAME," \
                    "count(TABLES.TABLE_NAME) as TABLES_COUNT,sum(TABLES.DATA_LENGTH) as SCHEMA_SIZE FROM SCHEMATA" \
-                   " JOIN TABLES ON TABLES.TABLE_SCHEMA = SCHEMATA.SCHEMA_NAME " \
-                   "GROUP BY TABLES.TABLE_SCHEMA"
+                   " LEFT JOIN TABLES ON TABLES.TABLE_SCHEMA = SCHEMATA.SCHEMA_NAME " \
+                   "GROUP BY SCHEMATA.SCHEMA_NAME"
         databases = query(connection, db_query)
 
+        # fetching mysql version
+        mysql_version = query(connection, "select version() as version;")
+        for version in mysql_version:
+            mysql_version = version
         # fetching tables from selected database
         if request.args.get('database'):
             database = str(request.args.get('database'))
@@ -86,7 +111,7 @@ def py_admin():
             query(connection, "use information_schema;")
             table_query = "SELECT TABLE_NAME, ENGINE,TABLE_ROWS, DATA_LENGTH, INDEX_LENGTH," \
                           " AUTO_INCREMENT, TABLE_COLLATION, TABLE_COMMENT " \
-                          " FROM TABLES WHERE TABLE_SCHEMA = '"+database+"'"
+                          " FROM TABLES WHERE TABLE_SCHEMA = '" + database + "'"
             tables = query(connection, table_query)
 
         # fetching table data and structure
@@ -95,7 +120,7 @@ def py_admin():
             selected_table = table_name
             query(connection, "use information_schema;")
             structure_query = "SELECT COLUMN_NAME,IS_NULLABLE,COLUMN_DEFAULT,COLUMN_TYPE,COLUMN_KEY,EXTRA,COLUMN_COMMENT FROM COLUMNS " \
-                              " WHERE TABLE_NAME='"+table_name+"' AND TABLE_SCHEMA='"+selected_db+"' ORDER BY ORDINAL_POSITION ASC"
+                              " WHERE TABLE_NAME='" + table_name + "' AND TABLE_SCHEMA='" + selected_db + "' ORDER BY ORDINAL_POSITION ASC"
             table_structure = query(connection, structure_query)
             # todo index and foreign keys
 
@@ -106,22 +131,31 @@ def py_admin():
             limit = 1000
             query(connection, "use information_schema;")
             col_query = "SELECT COLUMN_NAME FROM COLUMNS " \
-                        " WHERE TABLE_NAME='"+table_name+"' " \
-                        " AND TABLE_SCHEMA='"+selected_db+"'"
+                        " WHERE TABLE_NAME='" + table_name + "' " \
+                        " AND TABLE_SCHEMA='" + selected_db + "'"
             table_columns = query(connection, col_query)
-            query(connection, "use "+selected_db)
-            data_query = "SELECT * FROM "+selected_table+" LIMIT "+str(limit)
+            query(connection, "use " + selected_db)
+            data_query = "SELECT * FROM " + selected_table + " LIMIT " + str(limit)
             table_data = query(connection, data_query)
 
+        if create == 'database':
+            # fetching all collations for database collection type on UI
+            query(connection, "use information_schema;")
+            all_collations = query(connection, "SELECT * FROM COLLATIONS ORDER BY SORTLEN ASC")
+            for collation in all_collations:
+                if collation['CHARACTER_SET_NAME'] in db_collations:
+                    db_collations[collation['CHARACTER_SET_NAME']].append(collation)
+                else:
+                    db_collations[collation['CHARACTER_SET_NAME']] = [collation,]
         # required in case query fails
         if databases:
             session['pass'] = True
             login = True
 
     return render_template('py_adminer.html', py_admin_url="/py_adminer", login=login, databases=databases,
-                           tables=tables, table_structure=table_structure, table_data=table_data,
-                           table_columns=table_columns,
-                           selected_db=selected_db,selected_table=selected_table)
+                           mysql_version=mysql_version, create=create, tables=tables, table_structure=table_structure,
+                           table_data=table_data, table_columns=table_columns, db_collations=db_collations,
+                           selected_db=selected_db, selected_table=selected_table)
 
 
 if __name__ == '__main__':
