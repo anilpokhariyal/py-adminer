@@ -188,6 +188,7 @@
             <table class="table table-bordered mt-4 datatable">
                 <thead>
                     <tr>
+                        <th><input type="checkbox" name="check_all_db" id="check_all_db"> </th>
                         <th>Databases</th>
                         <th>Collation</th>
                         <th>Tables</th>
@@ -197,6 +198,7 @@
                 <tbody>
                 {% for database in databases %}
                     <tr>
+                        <td><input type="checkbox" name="db_name[]" class="db_check"></td>
                         <td><a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></td>
                         <td>{{database['DEFAULT_COLLATION_NAME']}}</td>
                         <td>{{database['TABLES_COUNT']}}</td>
@@ -265,6 +267,14 @@
 <script type="text/javascript">
     $(document).ready(function (){
        $('#datatable').DataTable();
+       //select/deselect databases
+       $(document).on("click","#check_all_db",function (){
+           if($(this).is(":checked")) {
+               $(".db_check").attr("checked", true);
+           }else{
+               $(".db_check").attr("checked", false);
+           }
+       });
     });
 </script>
 </body>
