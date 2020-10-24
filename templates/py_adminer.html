@@ -33,7 +33,7 @@
     </div>
     <div class="row">
         <!-- sidebar -->
-        <div class="col-md-2">
+        <div class="col-md-2" style="overflow: auto !important;">
             <h4>Databases</h4>
             {% if login %}
                 <select class="form-control" onchange="location.href='?database='+this.value">
@@ -203,7 +203,7 @@
                         <td><a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></td>
                         <td>{{database['DEFAULT_COLLATION_NAME']}}</td>
                         <td>{{database['TABLES_COUNT']}}</td>
-                        <td>{{database['SCHEMA_SIZE']}}</td>
+                        <td>{{database['SCHEMA_SIZE']/(1024*1024)|int}} MB</td>
                     </tr>
                 {% endfor %}
                 </tbody>
