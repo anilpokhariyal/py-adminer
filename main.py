@@ -39,6 +39,7 @@ def home():
 
 @app.route("/create_database", methods=["POST"])
 def create_database():
+    """create/alter database"""
     if 'system' in session and session['system'] == 'mysql':
         try:
             connection = mysql_connection()
@@ -50,13 +51,26 @@ def create_database():
         create_db = "CREATE DATABASE " + db_name
         if collation:
             create_db += " CHARACTER SET " + collation[1] + " COLLATE " + collation[0] + ";"
-        app.logger.info(create_db)
         query(connection, create_db)
+
+        # alter database and it's tables
+        alter_db = request.form.get('alter_db_name', None)
+        if alter_db:
+            query(connection, "use information_schema;")
+            table_query = "SELECT TABLE_NAME FROM TABLES WHERE TABLE_SCHEMA = '" + alter_db + "'"
+            tables = query(connection, table_query)
+
+            query(connection, "use "+alter_db+";")
+            for table in tables:
+                query(connection, "RENAME TABLE " + table['TABLE_NAME'] + " TO `"+db_name+"`.`"+table['TABLE_NAME']+"`;")
+            query(connection, "DROP DATABASE " + alter_db + ";")
+
         return redirect('/')
 
 
 @app.route("/drop_database", methods=["POST"])
 def drop_database():
+    """drop database"""
     if 'system' in session and session['system'] == 'mysql':
         try:
             connection = mysql_connection()
@@ -65,7 +79,7 @@ def drop_database():
 
         databases = request.form.getlist('db_name')
         for database in databases:
-            query(connection, "DROP DATABASE " + database+";")
+            query(connection, "DROP DATABASE " + database + ";")
 
         return redirect('/')
 
@@ -119,8 +133,13 @@ def py_admin():
         mysql_version = query(connection, "select version() as version;")
         for version in mysql_version:
             mysql_version = version
+
+        # setting database name for alter
+        if request.args.get('database') and create == "alter_database":
+            database = str(request.args.get('database'))
+            selected_db = database
         # fetching tables from selected database
-        if request.args.get('database'):
+        if request.args.get('database') and not create:
             database = str(request.args.get('database'))
             selected_db = database
             query(connection, "use information_schema;")
@@ -162,13 +181,15 @@ def py_admin():
                     db_collations[collation['CHARACTER_SET_NAME']].append(collation)
                 else:
                     db_collations[collation['CHARACTER_SET_NAME']] = [collation, ]
+
         # required in case query fails
         if databases:
             session['pass'] = True
             login = True
 
     return render_template('py_adminer.html', py_admin_url="/py_adminer", login=login, databases=databases,
-                           mysql_version=mysql_version, create=create, tables=tables, table_structure=table_structure,
+                           mysql_version=mysql_version, create=create, action=action,
+                           tables=tables, table_structure=table_structure,
                            table_data=table_data, table_columns=table_columns, db_collations=db_collations,
                            selected_db=selected_db, selected_table=selected_table)
 

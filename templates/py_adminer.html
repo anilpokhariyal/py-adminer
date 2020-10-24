@@ -88,6 +88,15 @@
                 </span>
             </div>
         {% endif %}
+        {% if tables and not selected_table %}
+            <div class="row mt-4 mb-4">
+                <div class="col-md-2">
+                    <a href="?create=alter_database&database={{selected_db}}">
+                        Alter Database
+                    </a>
+                </div>
+            </div>
+        {% endif %}
         <!-- mysql data and structure-->
         {% if not login %}
             <form method="POST" name="login" action="{{py_admin_url}}">
@@ -124,15 +133,18 @@
                     </div>
                 </div>
             </form>
-        {% elif create and create == 'database' %}
+        {% elif create and (create == 'database' or create == 'alter_database') %}
             <div class="row mt-4 p-4">
-                <h4 class="col-md-12 bg-warning p-2">Create Database</h4>
+                <h4 class="col-md-12 bg-warning p-2">
+                    {% if create == 'database' %} Create {% elif create == 'alter_database' %} Alter {% endif %} Database
+                </h4>
                 <div class="col-md-12 mt-4">
                     <form method="POST" name="create_database" action="/create_database">
                     <span class="col-md-4">
-                        <input type="text" name="database_name" placeholder="database name" required>
+                        <input type="text" name="database_name" placeholder="database name" value="{{selected_db}}" required>
                     </span>
                     <span class="col-md-6">
+                        <input type="hidden" name="alter_db_name" value="{{selected_db}}">
                         <select name="database_collection" style="width: 200px; height: 30px;">
                             <option value="('utf8_general_ci','utf8')">(collection)</option>
                             {% for key, collations in db_collations.items() %}
@@ -186,29 +198,35 @@
             </table>
         {% elif databases and not selected_db %}
             <form name="database_actions" method="POST" action="drop_database">
-            <table class="table table-bordered mt-4">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" name="check_all_db" id="check_all_db"> </th>
-                        <th>Databases</th>
-                        <th>Collation</th>
-                        <th>Tables</th>
-                        <th>Size</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for database in databases %}
-                    <tr>
-                        <td><input type="checkbox" name="db_name" class="db_check" value="{{database['SCHEMA_NAME']}}"></td>
-                        <td><a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></td>
-                        <td>{{database['DEFAULT_COLLATION_NAME']}}</td>
-                        <td>{{database['TABLES_COUNT']}}</td>
-                        <td>{{database['SCHEMA_SIZE']/(1024*1024)|int}} MB</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            <div class="col-md-2 p-4">
+                <table class="table table-bordered mt-4">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" name="check_all_db" id="check_all_db"> </th>
+                            <th>Databases</th>
+                            <th>Collation</th>
+                            <th>Tables</th>
+                            <th>Size</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for database in databases %}
+                        <tr>
+                            <td><input type="checkbox" name="db_name" class="db_check" value="{{database['SCHEMA_NAME']}}"></td>
+                            <td><a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></td>
+                            <td>{{database['DEFAULT_COLLATION_NAME']}}</td>
+                            <td>{{database['TABLES_COUNT']}}</td>
+                            <td>
+                                {% if database['SCHEMA_SIZE'] %}
+                                {{(database['SCHEMA_SIZE']/(1024))|int}} KB
+                                {% else %}
+                                0 KB
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div class="col-md-2 p-4">
                 <button class="btn btn-secondary btn-sm" id="drop_databases"> Drop </button>
             </div>
             </form>
@@ -288,7 +306,9 @@
 
        $(document).on('click','#drop_databases',function (){
           if(count_selected_databases()>0){
-            $(this).closest('form').submit();
+              if(confirm("Are you sure to drop database?")) {
+                  $(this).closest('form').submit();
+              }
           }else{
             alert("Please select at least one database to drop.");
           }
