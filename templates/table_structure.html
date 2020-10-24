@@ -1,0 +1,31 @@
+<table class="table table-bordered mt-4">
+    <thead>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Key</th>
+            <th>Comment</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for structure in table_structure %}
+        <tr>
+            <td>{{structure['COLUMN_NAME']}}</td>
+            <td>
+                {{structure['COLUMN_TYPE']}}
+                {% if structure['IS_NULLABLE']=='YES' %}
+                    NULL
+                {% endif %}
+                {% if structure['COLUMN_DEFAULT'] %}
+                    [{{structure['COLUMN_DEFAULT']}}]
+                {% endif %}
+
+                {{structure['EXTRA']}}
+
+            </td>
+            <td>{{structure['COLUMN_KEY']}}</td>
+            <td>{{structure['COLUMN_COMMENT']}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

@@ -1,0 +1,20 @@
+<table class="table table-bordered mt-4 datatable">
+    <thead>
+        <tr>
+            {% for column in table_columns %}
+            <th>
+                {{column['COLUMN_NAME']}}
+            </th>
+            {% endfor %}
+        </tr>
+    </thead>
+    {% for data in table_data %}
+        <tr>
+            {% for column in table_columns %}
+            <td>
+                {{data[column['COLUMN_NAME']]}}
+            </td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>

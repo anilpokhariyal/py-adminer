@@ -1,0 +1,34 @@
+<form method="POST" name="login" action="{{py_admin_url}}">
+    <div class="col-md-4 mt-4">
+        <div class="form-group">
+            <label class="col-md-3">System</label>
+            <select name="system" style="width: 45%">
+                <option value="mysql">MySql</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3">Server</label>
+            <input type="text"  placeholder="localhost" name="server" value="laradock_mysql_1">
+        </div>
+        <div class="form-group">
+            <label class="col-md-3">Username</label>
+            <input type="text" name="username" value="root">
+        </div>
+        <div class="form-group">
+            <label class="col-md-3">Password</label>
+            <input type="password" name="password" value="root">
+        </div>
+        <div class="form-group">
+            <label class="col-md-3">Database</label>
+            <input type="text" name="database" >
+        </div>
+        <div>
+            <span class="col-md-9">
+                Permanent login <input type="checkbox" name="permanent_login">
+            </span>
+            <span class="col-md-3 ml-4">
+                <button class="btn btn-primary">Login</button>
+            </span>
+        </div>
+    </div>
+</form>

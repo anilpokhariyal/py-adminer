@@ -3,269 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <title>PyAdminer : a python database manager</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
-
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="/static/js/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="/static/js/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="/static/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/static/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="/static/js/jquery.dataTables.js"></script>
 </head>
 <body>
 <div class="container-fluid">
-    <div class="row bg-warning">
-        <div class="col-md-2"><h3>PyAdminer<sub>0.1</sub></h3></div>
-        <!--options starts here-->
-        <div class="col-md-10">
-            {% if not login %}
-            <h3>Login</h3>
-            {% elif tables %}
-            {% if selected_table %}
-                <h3>Table : {{selected_table}}</h3>
-            {% else %}
-                <h3>Tables</h3>
-            {% endif %}
-            {% elif databases %}
-            <h3>Databases</h3>
-            {% endif %}
-        </div>
-        <!-- options ends here-->
-    </div>
+    {% include 'header.html' %}
     <div class="row">
-        <!-- sidebar -->
-        <div class="col-md-2">
-            <h4>Databases</h4>
-            {% if login %}
-                <select class="form-control" onchange="location.href='?database='+this.value">
-                    <option value="">All</option>
-                    {% for database in databases %}
-                    <option value="{{database['SCHEMA_NAME']}}" {% if selected_db==database['SCHEMA_NAME'] %} selected {% endif %}>
-                        {{database['SCHEMA_NAME']}}
-                    </option>>
-                    {% endfor %}
-                </select>
-            {% endif %}
-
-            <ul class="pt-4" style="list-style: none; padding-left: 2px !important;">
-            {% if not selected_db %}
-                {% for database in databases %}
-                    <li> <a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></li>
-                {% endfor %}
-            {% else %}
-                {% for table in tables %}
-                    <li> <a href="?database={{selected_db}}&table={{table['TABLE_NAME']}}">{{table['TABLE_NAME']}}</a></li>
-                {% endfor %}
-            {% endif %}
-            </ul>
-        </div>
-        <!-- sidebar ends here-->
-        <div class="col-md-10">
+        {% include 'sidebar.html' %}
+        <div class="col-md-10 mt-4">
         {% if selected_table %}
-            <div class="row mt-4 mb-4">
-                <span class="col-md-1">
-                    <a href="?database={{selected_db}}&table={{selected_table}}">
-                        Structure
-                    </a>
-                </span>
-                <span class="col-md-1">
-                    <a href="?database={{selected_db}}&table={{selected_table}}&action=data">
-                        Data
-                    </a>
-                </span>
-                <span class="col-md-1">Alter</span>
-                <span class="col-md-1">New</span>
-            </div>
+            {% include 'table_options.html' %}
         {% endif %}
+
         {% if not create and databases and not selected_db %}
-            <div class="row mt-4">
-                <strong class="ml-4">Mysql version : {{mysql_version['version']}} Using MySQLdb in Python</strong>
-            </div>
-            <div class="row mt-4">
-                <span class="col-md-2">
-                    <a href="?create=database">
-                        Create Database
+            {% include 'database_options.html' %}
+        {% endif %}
+
+        {% if tables and not selected_table %}
+            <div class="row mt-4 mb-4">
+                <div class="col-md-2">
+                    <a href="?create=alter_database&database={{selected_db}}">
+                        Alter Database
                     </a>
-                </span>
+                </div>
             </div>
         {% endif %}
         <!-- mysql data and structure-->
         {% if not login %}
-            <form method="POST" name="login" action="{{py_admin_url}}">
-                <div class="col-md-4 mt-4">
-                    <div class="form-group">
-                        <label class="col-md-3">System</label>
-                        <select name="system" style="width: 45%">
-                            <option value="mysql">MySql</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3">Server</label>
-                        <input type="text"  placeholder="localhost" name="server" value="laradock_mysql_1">
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3">Username</label>
-                        <input type="text" name="username" value="root">
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3">Password</label>
-                        <input type="password" name="password" value="root">
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3">Database</label>
-                        <input type="text" name="database" >
-                    </div>
-                    <div>
-                        <span class="col-md-9">
-                            Permanent login <input type="checkbox" name="permanent_login">
-                        </span>
-                        <span class="col-md-3 ml-4">
-                            <button class="btn btn-primary">Login</button>
-                        </span>
-                    </div>
-                </div>
-            </form>
-        {% elif create and create == 'database' %}
-            <div class="row mt-4 p-4">
-                <h4 class="col-md-12 bg-warning p-2">Create Database</h4>
-                <div class="col-md-12 mt-4">
-                    <form method="POST" name="create_database" action="/create_database">
-                    <span class="col-md-4">
-                        <input type="text" name="database_name" placeholder="database name" required>
-                    </span>
-                    <span class="col-md-6">
-                        <select name="database_collection" style="width: 200px; height: 30px;">
-                            <option value="('utf8_general_ci','utf8')">(collection)</option>
-                            {% for key, collations in db_collations.items() %}
-                                <optgroup label="{{key}}">
-                                    {{key}}
-                                {% for collation in collations %}
-                                    <option value="{{collation['COLLATION_NAME'],key}}">{{collation['COLLATION_NAME']}}</option>
-                                {% endfor %}
-                                </optgroup>
-                            {% endfor %}
-                        </select>
-                    </span>
-                    <span class="col-md-2">
-                        <button type="submit" class="btn btn-info">Save</button>
-                    </span>
-                    </form>
-                </div>
-            </div>
+            {% include 'login_mysql.html' %}
+        {% elif create and (create == 'database' or create == 'alter_database') %}
+            {% include 'create_database.html' %}
         {% elif tables and not selected_table %}
-            <table class="table table-bordered mt-4 datatable">
-                <thead>
-                    <tr>
-                        <th>Tables</th>
-                        <th>Engine</th>
-                        <th>Collection</th>
-                        <th>Rows</th>
-                        <th>Data Length</th>
-                        <th>Index Length</th>
-                        <th>Auto Increment</th>
-                        <th>Comment</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for table in tables %}
-                    <tr>
-                        <td>
-                            <a href="?database={{selected_db}}&table={{table['TABLE_NAME']}}">
-                            {{table['TABLE_NAME']}}
-                            </a>
-                        </td>
-                        <td>{{table['ENGINE']}}</td>
-                        <td>{{table['TABLE_COLLATION']}}</td>
-                        <td>{{table['TABLE_ROWS']}}</td>
-                        <td>{{table['DATA_LENGTH']}}</td>
-                        <td>{{table['INDEX_LENGTH']}}</td>
-                        <td>{{table['AUTO_INCREMENT']}}</td>
-                        <td>{{table['TABLE_COMMENT']}}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            {% include 'list_tables.html' %}
         {% elif databases and not selected_db %}
-            <table class="table table-bordered mt-4 datatable">
-                <thead>
-                    <tr>
-                        <th>Databases</th>
-                        <th>Collation</th>
-                        <th>Tables</th>
-                        <th>Size</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for database in databases %}
-                    <tr>
-                        <td><a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></td>
-                        <td>{{database['DEFAULT_COLLATION_NAME']}}</td>
-                        <td>{{database['TABLES_COUNT']}}</td>
-                        <td>{{database['SCHEMA_SIZE']}}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            {% include 'list_databases.html' %}
         {% elif selected_db and selected_table and table_structure %}
-            <table class="table table-bordered mt-4 datatable">
-                <thead>
-                    <tr>
-                        <th>Column</th>
-                        <th>Type</th>
-                        <th>Key</th>
-                        <th>Comment</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for structure in table_structure %}
-                    <tr>
-                        <td>{{structure['COLUMN_NAME']}}</td>
-                        <td>
-                            {{structure['COLUMN_TYPE']}}
-                            {% if structure['IS_NULLABLE']=='YES' %}
-                                NULL
-                            {% endif %}
-                            {% if structure['COLUMN_DEFAULT'] %}
-                                [{{structure['COLUMN_DEFAULT']}}]
-                            {% endif %}
-
-                            {{structure['EXTRA']}}
-
-                        </td>
-                        <td>{{structure['COLUMN_KEY']}}</td>
-                        <td>{{structure['COLUMN_COMMENT']}}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            {% include 'table_structure.html' %}
         {% elif selected_db and selected_table and table_data %}
-            <table class="table table-bordered mt-4" id="datatable">
-                <thead>
-                    <tr>
-                        {% for column in table_columns %}
-                        <th>
-                            {{column['COLUMN_NAME']}}
-                        </th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                {% for data in table_data %}
-                    <tr>
-                        {% for column in table_columns %}
-                        <td>
-                            {{data[column['COLUMN_NAME']]}}
-                        </td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </table>
+            {% include 'table_data.html' %}
         {% endif %}
         </div>
     </div>
 </div>
-<script type="text/javascript">
-    $(document).ready(function (){
-       $('#datatable').DataTable();
-    });
-</script>
+<script src="/static/js/actions.js"></script>
 </body>
 </html>

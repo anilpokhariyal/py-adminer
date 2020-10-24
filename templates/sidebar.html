@@ -1,0 +1,27 @@
+ <!-- sidebar -->
+<div class="col-md-2" style="overflow: auto !important;">
+    <h4>Databases</h4>
+    {% if login %}
+        <select class="form-control" onchange="location.href='?database='+this.value">
+            <option value="">All</option>
+            {% for database in databases %}
+            <option value="{{database['SCHEMA_NAME']}}" {% if selected_db==database['SCHEMA_NAME'] %} selected {% endif %}>
+                {{database['SCHEMA_NAME']}}
+            </option>>
+            {% endfor %}
+        </select>
+    {% endif %}
+
+    <ul class="pt-4" style="list-style: none; padding-left: 2px !important;">
+    {% if not selected_db %}
+        {% for database in databases %}
+            <li> <a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></li>
+        {% endfor %}
+    {% else %}
+        {% for table in tables %}
+            <li> <a href="?database={{selected_db}}&table={{table['TABLE_NAME']}}">{{table['TABLE_NAME']}}</a></li>
+        {% endfor %}
+    {% endif %}
+    </ul>
+</div>
+<!-- sidebar ends here-->

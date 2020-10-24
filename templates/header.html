@@ -1,0 +1,18 @@
+<div class="row bg-warning">
+    <div class="col-md-2"><h3>PyAdminer<sub>0.1</sub></h3></div>
+    <!--options starts here-->
+    <div class="col-md-10">
+        {% if not login %}
+        <h3>Login</h3>
+        {% elif tables %}
+        {% if selected_table %}
+            <h3>Table : {{selected_table}}</h3>
+        {% else %}
+            <h3>Tables</h3>
+        {% endif %}
+        {% elif databases %}
+        <h3>Databases</h3>
+        {% endif %}
+    </div>
+    <!-- options ends here-->
+</div>
