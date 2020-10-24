@@ -1,0 +1,32 @@
+<table class="table table-bordered mt-4 datatable">
+    <thead>
+        <tr>
+            <th>Tables</th>
+            <th>Engine</th>
+            <th>Collection</th>
+            <th>Rows</th>
+            <th>Data Length</th>
+            <th>Index Length</th>
+            <th>Auto Increment</th>
+            <th>Comment</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for table in tables %}
+        <tr>
+            <td>
+                <a href="?database={{selected_db}}&table={{table['TABLE_NAME']}}">
+                {{table['TABLE_NAME']}}
+                </a>
+            </td>
+            <td>{{table['ENGINE']}}</td>
+            <td>{{table['TABLE_COLLATION']}}</td>
+            <td>{{table['TABLE_ROWS']}}</td>
+            <td>{{table['DATA_LENGTH']}}</td>
+            <td>{{table['INDEX_LENGTH']}}</td>
+            <td>{{table['AUTO_INCREMENT']}}</td>
+            <td>{{table['TABLE_COMMENT']}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

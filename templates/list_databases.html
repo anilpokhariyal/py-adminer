@@ -1,0 +1,33 @@
+<form name="database_actions" method="POST" action="drop_database">
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th><input type="checkbox" name="check_all_db" id="check_all_db"> </th>
+                <th>Databases</th>
+                <th>Collation</th>
+                <th>Tables</th>
+                <th>Size</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for database in databases %}
+            <tr>
+                <td><input type="checkbox" name="db_name" class="db_check" value="{{database['SCHEMA_NAME']}}"></td>
+                <td><a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></td>
+                <td>{{database['DEFAULT_COLLATION_NAME']}}</td>
+                <td>{{database['TABLES_COUNT']}}</td>
+                <td>
+                    {% if database['SCHEMA_SIZE'] %}
+                    {{(database['SCHEMA_SIZE']/(1024))|int}} KB
+                    {% else %}
+                    0 KB
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="col-md-2 p-4">
+        <button class="btn btn-secondary btn-sm" id="drop_databases"> Drop </button>
+    </div>
+</form>
