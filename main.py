@@ -47,11 +47,26 @@ def create_database():
 
         db_name = request.form.get('database_name')
         collation = eval(request.form.get('database_collection'))
-        create_db = "CREATE DATABASE "+db_name
+        create_db = "CREATE DATABASE " + db_name
         if collation:
-            create_db += " CHARACTER SET "+collation[1]+" COLLATE "+collation[0]+";"
+            create_db += " CHARACTER SET " + collation[1] + " COLLATE " + collation[0] + ";"
         app.logger.info(create_db)
         query(connection, create_db)
+        return redirect('/')
+
+
+@app.route("/drop_database", methods=["POST"])
+def drop_database():
+    if 'system' in session and session['system'] == 'mysql':
+        try:
+            connection = mysql_connection()
+        except ConnectionError as ex:
+            return redirect('/')
+
+        databases = request.form.getlist('db_name')
+        for database in databases:
+            query(connection, "DROP DATABASE " + database+";")
+
         return redirect('/')
 
 
@@ -132,7 +147,7 @@ def py_admin():
             query(connection, "use information_schema;")
             col_query = "SELECT COLUMN_NAME FROM COLUMNS " \
                         " WHERE TABLE_NAME='" + table_name + "' " \
-                        " AND TABLE_SCHEMA='" + selected_db + "'"
+                                                             " AND TABLE_SCHEMA='" + selected_db + "'"
             table_columns = query(connection, col_query)
             query(connection, "use " + selected_db)
             data_query = "SELECT * FROM " + selected_table + " LIMIT " + str(limit)
@@ -146,7 +161,7 @@ def py_admin():
                 if collation['CHARACTER_SET_NAME'] in db_collations:
                     db_collations[collation['CHARACTER_SET_NAME']].append(collation)
                 else:
-                    db_collations[collation['CHARACTER_SET_NAME']] = [collation,]
+                    db_collations[collation['CHARACTER_SET_NAME']] = [collation, ]
         # required in case query fails
         if databases:
             session['pass'] = True

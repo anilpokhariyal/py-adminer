@@ -185,6 +185,7 @@
                 </tbody>
             </table>
         {% elif databases and not selected_db %}
+            <form name="database_actions" method="POST" action="drop_database">
             <table class="table table-bordered mt-4 datatable">
                 <thead>
                     <tr>
@@ -198,7 +199,7 @@
                 <tbody>
                 {% for database in databases %}
                     <tr>
-                        <td><input type="checkbox" name="db_name[]" class="db_check"></td>
+                        <td><input type="checkbox" name="db_name" class="db_check" value="{{database['SCHEMA_NAME']}}"></td>
                         <td><a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></td>
                         <td>{{database['DEFAULT_COLLATION_NAME']}}</td>
                         <td>{{database['TABLES_COUNT']}}</td>
@@ -207,6 +208,10 @@
                 {% endfor %}
                 </tbody>
             </table>
+            <div class="col-md-2 p-4">
+                <button class="btn btn-secondary btn-sm" id="drop_databases"> Drop </button>
+            </div>
+            </form>
         {% elif selected_db and selected_table and table_structure %}
             <table class="table table-bordered mt-4 datatable">
                 <thead>
@@ -274,8 +279,26 @@
            }else{
                $(".db_check").attr("checked", false);
            }
+           count_selected_databases();
+       });
+
+       $(document).on('click','.db_check',function (){
+           count_selected_databases();
+       });
+
+       $(document).on('click','#drop_databases',function (){
+          if(count_selected_databases()>0){
+            $(this).closest('form').submit();
+          }else{
+            alert("Please select at least one database to drop.");
+          }
        });
     });
+    function count_selected_databases(){
+        let count_databases = $('.db_check:checked').length;
+        $('#drop_databases').text("Drop ("+count_databases+")");
+        return count_databases;
+    }
 </script>
 </body>
 </html>
