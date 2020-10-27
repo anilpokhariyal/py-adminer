@@ -1,0 +1,79 @@
+<div class="row mt-4 p-4">
+    <h4 class="col-md-12 bg-warning p-2">
+        {% if create == 'table' %} Create {% elif create == 'alter_table' %} Alter {% endif %} Table
+    </h4>
+    <div class="col-md-12 mt-4">
+        <label>Table Name: </label>
+        <input type="text" name="table_name">
+        <select name="engine">
+            {% for engine in db_engines %}
+                <option value="{{engine['ENGINE']}}" {% if engine['SUPPORT'] == 'DEFAULT' %} selected {% endif %}}>
+                {{engine['ENGINE']}}
+                </option>
+            {% endfor %}
+        </select>
+        <select name="table_collection">
+            <option value="('utf8_general_ci','utf8')">(collection)</option>
+            {% for key, collations in db_collations.items() %}
+                <optgroup label="{{key}}">
+                    {{key}}
+                {% for collation in collations %}
+                    <option value="{{collation['COLLATION_NAME'],key}}">{{collation['COLLATION_NAME']}}</option>
+                {% endfor %}
+                </optgroup>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-12 mt-2">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Column Name</th>
+                    <th>Type</th>
+                    <th>Length</th>
+                    <th>Options</th>
+                    <th>Null</th>
+                    <th>AI</th>
+                    <th>Default Value</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <input type="text" name="column_name">
+                    </td>
+                    <td>
+                        <select name="column_type">
+                            <option>int</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="length">
+                    </td>
+                    <td>
+                        <select name="column_option">
+                            <option>unsigned</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="column_null">
+                    </td>
+                    <td>
+                        <input type="radio" name="column_ai">
+                    </td>
+                    <td>
+                        <input type="checkbox" name="column_is_default">
+                        <input type="text" name="column_default_value">
+                    </td>
+                    <td>
+                        <em class="fa fa-plus"></em>
+                        <em class="fa fa-arrow-up"></em>
+                        <em class="fa fa-arrow-down"></em>
+                        <em class="fa fa-times"></em>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

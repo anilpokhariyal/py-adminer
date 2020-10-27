@@ -5,11 +5,11 @@
     <div class="col-md-12 mt-4">
         <form method="POST" name="create_database" action="/create_database">
         <span class="col-md-4">
-            <input type="text" name="database_name" placeholder="database name" value="{{selected_db}}" required>
+            <input type="text" name="database_name" placeholder="database name" value="{% if selected_db %}{{selected_db}}{% endif %}" required>
         </span>
         <span class="col-md-6">
             <input type="hidden" name="alter_db_name" value="{{selected_db}}">
-            <select name="database_collection" style="width: 200px; height: 30px;">
+            <select name="database_collection">
                 <option value="('utf8_general_ci','utf8')">(collection)</option>
                 {% for key, collations in db_collations.items() %}
                     <optgroup label="{{key}}">
