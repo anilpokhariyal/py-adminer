@@ -2,10 +2,12 @@
     <h4 class="col-md-12 bg-warning p-2">
         {% if create == 'table' %} Create {% elif create == 'alter_table' %} Alter {% endif %} Table
     </h4>
+    <form name="create_table" method="POST" action="/create_table">
     <div class="col-md-12 mt-4">
         <label>Table Name: </label>
-        <input type="text" name="table_name">
-        <select name="engine">
+        <input type="hidden" name="database" value="{{selected_db}}">
+        <input type="text" name="table_name" required>
+        <select name="engine" required>
             {% for engine in db_engines %}
                 <option value="{{engine['ENGINE']}}" {% if engine['SUPPORT'] == 'DEFAULT' %} selected {% endif %}}>
                 {{engine['ENGINE']}}
@@ -23,6 +25,7 @@
                 </optgroup>
             {% endfor %}
         </select>
+        <button class="btn btn-primary btn-sm ml-4" name="save_table" type="submit">Save</button>
     </div>
     <div class="col-md-12 mt-2">
         <table class="table table-bordered">
@@ -41,7 +44,7 @@
             <tbody>
                 <tr>
                     <td>
-                        <input type="text" name="column_name">
+                        <input type="text" name="column_name" required>
                     </td>
                     <td>
                         <select name="column_type">
@@ -76,4 +79,16 @@
             </tbody>
         </table>
     </div>
+    </form>
 </div>
+<script type="text/javascript">
+    $(document).ready(function (){
+       $(document).on('click','.fa-plus',function (){
+          let html = $(this).closest('tr').clone();
+          $(this).closest('tbody').append(html);
+       });
+       $(document).on('click','.fa-times',function (){
+          $(this).closest('tr').remove();
+       });
+    });
+</script>
