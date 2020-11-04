@@ -96,6 +96,8 @@ def py_admin():
     table_structure = []
     table_data = []
     table_columns = []
+    db_engines = []
+    column_types = []
     mysql_version = 0
     login = False
     selected_db = None
@@ -135,9 +137,32 @@ def py_admin():
             mysql_version = version
 
         # setting database name for alter
-        if request.args.get('database') and create == "alter_database":
+        if request.args.get('database') and create:
             database = str(request.args.get('database'))
             selected_db = database
+
+        # options of collation and engine for creating database or table
+        if create:
+            # fetching all collations for database collection type on UI
+            query(connection, "use information_schema;")
+            all_collations = query(connection, "SELECT * FROM COLLATIONS ORDER BY SORTLEN ASC")
+            for collation in all_collations:
+                if collation['CHARACTER_SET_NAME'] in db_collations:
+                    db_collations[collation['CHARACTER_SET_NAME']].append(collation)
+                else:
+                    db_collations[collation['CHARACTER_SET_NAME']] = [collation, ]
+
+            if create == 'table':
+                # for create table
+                query(connection, "use information_schema;")
+                db_engines = query(connection, "SELECT * FROM ENGINES")
+                column_types = query(connection, "SELECT * FROM COLLATIONS ORDER BY SORTLEN ASC")
+                for collation in all_collations:
+                    if collation['CHARACTER_SET_NAME'] in db_collations:
+                        db_collations[collation['CHARACTER_SET_NAME']].append(collation)
+                    else:
+                        db_collations[collation['CHARACTER_SET_NAME']] = [collation, ]
+
         # fetching tables from selected database
         if request.args.get('database') and not create:
             database = str(request.args.get('database'))
@@ -156,7 +181,7 @@ def py_admin():
             structure_query = "SELECT COLUMN_NAME,IS_NULLABLE,COLUMN_DEFAULT,COLUMN_TYPE,COLUMN_KEY,EXTRA,COLUMN_COMMENT FROM COLUMNS " \
                               " WHERE TABLE_NAME='" + table_name + "' AND TABLE_SCHEMA='" + selected_db + "' ORDER BY ORDINAL_POSITION ASC"
             table_structure = query(connection, structure_query)
-            # todo index and foreign keys
+        # todo index and foreign keys
 
         # fetching table data
         if selected_db and request.args.get('table') and action:
@@ -172,16 +197,6 @@ def py_admin():
             data_query = "SELECT * FROM " + selected_table + " LIMIT " + str(limit)
             table_data = query(connection, data_query)
 
-        if create == 'database':
-            # fetching all collations for database collection type on UI
-            query(connection, "use information_schema;")
-            all_collations = query(connection, "SELECT * FROM COLLATIONS ORDER BY SORTLEN ASC")
-            for collation in all_collations:
-                if collation['CHARACTER_SET_NAME'] in db_collations:
-                    db_collations[collation['CHARACTER_SET_NAME']].append(collation)
-                else:
-                    db_collations[collation['CHARACTER_SET_NAME']] = [collation, ]
-
         # required in case query fails
         if databases:
             session['pass'] = True
@@ -189,7 +204,7 @@ def py_admin():
 
     return render_template('py_adminer.html', py_admin_url="/py_adminer", login=login, databases=databases,
                            mysql_version=mysql_version, create=create, action=action,
-                           tables=tables, table_structure=table_structure,
+                           tables=tables, table_structure=table_structure, db_engines=db_engines,
                            table_data=table_data, table_columns=table_columns, db_collations=db_collations,
                            selected_db=selected_db, selected_table=selected_table)
 

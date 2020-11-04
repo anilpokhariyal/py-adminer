@@ -9,6 +9,8 @@
     <script src="/static/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
     <link rel="shortcut icon" href="/static/favicon.ico">
     <link rel="stylesheet" type="text/css" href="/static/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/font-awesome.min.css">
     <script type="text/javascript" charset="utf8" src="/static/js/jquery.dataTables.js"></script>
 </head>
 <body>
@@ -32,6 +34,11 @@
                         Alter Database
                     </a>
                 </div>
+                <div class="col-md-1">
+                    <a href="?create=table&database={{selected_db}}">
+                        New Table
+                    </a>
+                </div>
             </div>
         {% endif %}
         <!-- mysql data and structure-->
@@ -39,6 +46,8 @@
             {% include 'login_mysql.html' %}
         {% elif create and (create == 'database' or create == 'alter_database') %}
             {% include 'create_database.html' %}
+        {% elif create and create=='table' %}
+            {% include 'create_table.html' %}
         {% elif tables and not selected_table %}
             {% include 'list_tables.html' %}
         {% elif databases and not selected_db %}
