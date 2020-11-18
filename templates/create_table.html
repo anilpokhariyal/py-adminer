@@ -3,33 +3,34 @@
         {% if create == 'table' %} Create {% elif create == 'alter_table' %} Alter {% endif %} Table
     </h4>
     <form name="create_table" method="POST" action="/create_table">
-    <div class="col-md-12 mt-4">
-        <label>Table Name: </label>
-        <input type="hidden" name="database" value="{{selected_db}}">
-        <input type="text" name="table_name" required>
-        <select name="engine" required>
-            {% for engine in db_engines %}
-                <option value="{{engine['ENGINE']}}" {% if engine['SUPPORT'] == 'DEFAULT' %} selected {% endif %}}>
+        <div class="col-md-12 mt-4">
+            <label>Table Name: </label>
+            <input type="hidden" name="database" value="{{selected_db}}">
+            <input type="text" name="table_name" required>
+            <select name="engine" required>
+                {% for engine in db_engines %}
+                <option value="{{engine['ENGINE']}}" {% if engine[
+                'SUPPORT'] == 'DEFAULT' %} selected {% endif %}}>
                 {{engine['ENGINE']}}
                 </option>
-            {% endfor %}
-        </select>
-        <select name="table_collection">
-            <option value="('utf8_general_ci','utf8')">(collection)</option>
-            {% for key, collations in db_collations.items() %}
+                {% endfor %}
+            </select>
+            <select name="table_collation">
+                <option value="('utf8_general_ci','utf8')">(collation)</option>
+                {% for key, collations in db_collations.items() %}
                 <optgroup label="{{key}}">
                     {{key}}
-                {% for collation in collations %}
+                    {% for collation in collations %}
                     <option value="{{collation['COLLATION_NAME'],key}}">{{collation['COLLATION_NAME']}}</option>
-                {% endfor %}
+                    {% endfor %}
                 </optgroup>
-            {% endfor %}
-        </select>
-        <button class="btn btn-primary btn-sm ml-4" name="save_table" type="submit">Save</button>
-    </div>
-    <div class="col-md-12 mt-2">
-        <table class="table table-bordered">
-            <thead>
+                {% endfor %}
+            </select>
+            <button class="btn btn-primary btn-sm ml-4" name="save_table" type="submit">Save</button>
+        </div>
+        <div class="col-md-12 mt-2">
+            <table class="table table-bordered">
+                <thead>
                 <tr>
                     <th>Column Name</th>
                     <th>Type</th>
@@ -40,23 +41,90 @@
                     <th>Default Value</th>
                     <th></th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 <tr>
                     <td>
                         <input type="text" name="column_name" required>
                     </td>
                     <td>
-                        <select name="column_type">
-                            <option>int</option>
+                        <select name="column_type" class="type" aria-labelledby="label-type">
+                            <optgroup label="Numbers">
+                                <option>tinyint</option>
+                                <option>smallint</option>
+                                <option>mediumint</option>
+                                <option selected="">int</option>
+                                <option>bigint</option>
+                                <option>decimal</option>
+                                <option>float</option>
+                                <option>double</option>
+                            </optgroup>
+                            <optgroup label="Date and time">
+                                <option>date</option>
+                                <option>datetime</option>
+                                <option>timestamp</option>
+                                <option>time</option>
+                                <option>year</option>
+                            </optgroup>
+                            <optgroup label="Strings">
+                                <option>char</option>
+                                <option>varchar</option>
+                                <option>tinytext</option>
+                                <option>text</option>
+                                <option>mediumtext</option>
+                                <option>longtext</option>
+                                <option>json</option>
+                            </optgroup>
+                            <optgroup label="Lists">
+                                <option>enum</option>
+                                <option>set</option>
+                            </optgroup>
+                            <optgroup label="Binary">
+                                <option>bit</option>
+                                <option>binary</option>
+                                <option>varbinary</option>
+                                <option>tinyblob</option>
+                                <option>blob</option>
+                                <option>mediumblob</option>
+                                <option>longblob</option>
+                            </optgroup>
+                            <optgroup label="Geometry">
+                                <option>geometry</option>
+                                <option>point</option>
+                                <option>linestring</option>
+                                <option>polygon</option>
+                                <option>multipoint</option>
+                                <option>multilinestring</option>
+                                <option>multipolygon</option>
+                                <option>geometrycollection</option>
+                            </optgroup>
                         </select>
                     </td>
                     <td>
                         <input type="text" name="length">
                     </td>
                     <td>
-                        <select name="column_option">
+                        <select name="column_option" class="options col_option">
                             <option>unsigned</option>
+                            <option>zerofill</option>
+                            <option>unsigned zerofill</option>
+                        </select>
+                        <select name="column_collation" class="options col_collation">
+                            <option value="('utf8_general_ci','utf8')">(collation)</option>
+                            {% for key, collations in db_collations.items() %}
+                            <optgroup label="{{key}}">
+                                {{key}}
+                                {% for collation in collations %}
+                                <option value="{{collation['COLLATION_NAME'],key}}">
+                                    {{collation['COLLATION_NAME']}}
+                                </option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endfor %}
+                        </select>
+                        <select name="column_on_update" class="options col_on_update">
+                            <option value="" selected="">(ON UPDATE)</option>
+                            <option>CURRENT_TIMESTAMP</option>
                         </select>
                     </td>
                     <td>
@@ -76,19 +144,39 @@
                         <em class="fa fa-times"></em>
                     </td>
                 </tr>
-            </tbody>
-        </table>
-    </div>
+                </tbody>
+            </table>
+        </div>
     </form>
 </div>
 <script type="text/javascript">
-    $(document).ready(function (){
-       $(document).on('click','.fa-plus',function (){
-          let html = $(this).closest('tr').clone();
-          $(this).closest('tbody').append(html);
-       });
-       $(document).on('click','.fa-times',function (){
-          $(this).closest('tr').remove();
-       });
+    $(document).ready(function () {
+        $('.col_collation').hide();
+        $('.col_on_update').hide();
+        $(document).on('click', '.fa-plus', function () {
+            let html = $(this).closest('tr').clone();
+            //setting default values
+            $(html).find('input').val('');
+            $(html).find('.type').val('int').change();
+            $(html).find('input:checkbox').prop('checked',false);
+            $(html).find('input:radio').prop('checked',false);
+            $(this).closest('tbody').append(html);
+        });
+        $(document).on('click', '.fa-times', function () {
+            $(this).closest('tr').remove();
+        });
+        $(document).on('change','.type',function (){
+            $(this).closest('tr').find('.options').hide();
+            let selected_option = $(this).val();
+            let label = $(this.options[this.selectedIndex]).closest('optgroup').prop('label');
+            if(label==='Numbers'){
+                $(this).closest('tr').find('.col_option').show();
+            }else if(selected_option=='datetime' || selected_option=='timestamp'){
+                $(this).closest('tr').find('.col_on_update').show();
+            }else if(label=='Strings'){
+                $(this).closest('tr').find('.col_collation').show();
+            }
+
+        });
     });
 </script>

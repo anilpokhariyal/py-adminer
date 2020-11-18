@@ -1,4 +1,4 @@
-from flask import Flask, request, session, render_template, abort, redirect
+from flask import Flask, request, session, render_template, abort, redirect, jsonify
 from flask_mysqldb import MySQL, MySQLdb
 import os, logging
 
@@ -60,9 +60,10 @@ def create_database():
             table_query = "SELECT TABLE_NAME FROM TABLES WHERE TABLE_SCHEMA = '" + alter_db + "'"
             tables = query(connection, table_query)
 
-            query(connection, "use "+alter_db+";")
+            query(connection, "use " + alter_db + ";")
             for table in tables:
-                query(connection, "RENAME TABLE " + table['TABLE_NAME'] + " TO `"+db_name+"`.`"+table['TABLE_NAME']+"`;")
+                query(connection,
+                      "RENAME TABLE " + table['TABLE_NAME'] + " TO `" + db_name + "`.`" + table['TABLE_NAME'] + "`;")
             query(connection, "DROP DATABASE " + alter_db + ";")
 
         return redirect('/')
@@ -82,6 +83,54 @@ def drop_database():
             query(connection, "DROP DATABASE " + database + ";")
 
         return redirect('/')
+
+
+@app.route("/create_table", methods=["POST"])
+def create_table():
+    """create table in selected database"""
+    database = request.form.get("database")
+    table_name = request.form.get("table_name")
+    table_collation = request.form.get("table_collation")
+    column_names = request.form.getlist("column_name")
+    app.logger.info(column_names)
+    column_types = request.form.getlist("column_type")
+    app.logger.info(column_types)
+    column_lengths = request.form.getlist("length")
+    app.logger.info(column_lengths)
+    column_options = request.form.getlist("column_option")
+    app.logger.info(column_options)
+    column_nulls = request.form.getlist("column_null")
+    app.logger.info(column_nulls)
+    column_ais = request.form.getlist("column_ai")
+    app.logger.info(column_ais)
+    column_is_defaults = request.form.getlist("column_is_default")
+    app.logger.info(column_is_defaults)
+    column_default_values = request.form.getlist("column_default_value")
+    app.logger.info(column_default_values)
+    # for mysql engine connection
+    if 'system' in session and session['system'] == 'mysql':
+        try:
+            connection = mysql_connection()
+        except ConnectionError as ex:
+            return redirect('/')
+
+        # fetching databases information
+        query(connection, "use " + database + ";")
+        create_query = "CREATE TABLE "+table_name+" ("
+        column_query = "{name} {type}{length} {option} {null} {default_value} {ai}"
+        for column_name, column_type, column_length, column_option, column_null, column_ai, column_is_default, column_default_value in zip(column_names, column_types, column_lengths, column_options, column_nulls, column_ais, column_is_defaults, column_default_values):
+            create_query += column_query.format(
+                name=column_name,
+                type=column_type,
+                length="({})".format(column_length) if column_length else "",
+                option=column_option,
+                null="NULL" if column_null in ["on", 1, True] else "NOT NULL",
+                default_value="DEFAULT "+column_default_value if column_is_default else "",
+                ai="AUTO_INCREMENT PRIMARY KEY" if column_ai else "")
+
+        create_query += ") CHARACTER SET "+table_collation[0]+" COLLATE "+table_collation[1]+";"
+
+    return jsonify(dict(query=create_query))
 
 
 @app.route("/py_adminer", methods=["GET", "POST"])
