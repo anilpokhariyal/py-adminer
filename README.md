@@ -15,3 +15,6 @@ for your OS.<br>
 find <strong>"app.run(host="0.0.0.0", port=5000)"</strong> at bottom of main.py
 
 
+<p>
+  If you want to setup pyadminer in a docker environment, docker files are created for that, you can directly run setup-docker.sh file. please confirm configration before running docker container.
+  </p>
