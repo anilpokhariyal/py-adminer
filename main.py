@@ -47,24 +47,25 @@ def create_database():
             return redirect('/')
 
         db_name = request.form.get('database_name')
-        collation = eval(request.form.get('database_collection'))
-        create_db = "CREATE DATABASE " + db_name
-        if collation:
-            create_db += " CHARACTER SET " + collation[1] + " COLLATE " + collation[0] + ";"
-        query(connection, create_db)
-
-        # alter database and it's tables
         alter_db = request.form.get('alter_db_name', None)
-        if alter_db:
-            query(connection, "use information_schema;")
-            table_query = "SELECT TABLE_NAME FROM TABLES WHERE TABLE_SCHEMA = '" + alter_db + "'"
-            tables = query(connection, table_query)
+        if db_name != alter_db:
+            collation = eval(request.form.get('database_collection'))
+            create_db = "CREATE DATABASE " + db_name
+            if collation:
+                create_db += " CHARACTER SET " + collation[1] + " COLLATE " + collation[0] + ";"
+            query(connection, create_db)
 
-            query(connection, "use " + alter_db + ";")
-            for table in tables:
-                query(connection,
-                      "RENAME TABLE " + table['TABLE_NAME'] + " TO `" + db_name + "`.`" + table['TABLE_NAME'] + "`;")
-            query(connection, "DROP DATABASE " + alter_db + ";")
+            # alter database and it's tables
+            if alter_db and alter_db != 'None':
+                query(connection, "use information_schema;")
+                table_query = "SELECT TABLE_NAME FROM TABLES WHERE TABLE_SCHEMA = '" + alter_db + "'"
+                tables = query(connection, table_query)
+
+                query(connection, "use " + alter_db + ";")
+                for table in tables:
+                    query(connection,
+                          "RENAME TABLE " + table['TABLE_NAME'] + " TO `" + db_name + "`.`" + table['TABLE_NAME'] + "`;")
+                query(connection, "DROP DATABASE " + alter_db + ";")
 
         return redirect('/')
 
@@ -105,7 +106,7 @@ def create_table():
         except (MySQLdb.Error, MySQLdb.Warning) as e:
             print(e)
 
-    return redirect('/py_adminer?database='+database+'&table='+table_name)
+    return redirect('/py_adminer?database=' + database + '&table=' + table_name)
 
 
 @app.route("/py_adminer", methods=["GET", "POST"])

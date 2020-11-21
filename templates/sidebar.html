@@ -13,7 +13,7 @@
     {% endif %}
 
     <ul class="pt-4" style="list-style: none; padding-left: 2px !important;">
-        <span class="pt-4"><a href="?database={{selected_db}}"> Dashboard </a></span>
+        <span class="pt-4"><a href="?database={{selected_db if selected_db}}"> Dashboard </a></span>
     {% if not selected_db %}
         {% for database in databases %}
             <li> <a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></li>
