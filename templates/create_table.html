@@ -10,26 +10,26 @@
             <select name="engine" required>
                 {% for engine in db_engines %}
                 <option value="{{engine['ENGINE']}}" {% if engine[
-                'SUPPORT'] == 'DEFAULT' %} selected {% endif %}}>
+                'SUPPORT'] == 'DEFAULT' %} selected {% endif %}>
                 {{engine['ENGINE']}}
                 </option>
                 {% endfor %}
             </select>
             <select name="table_collation">
-                <option value="('utf8_general_ci','utf8')">(collation)</option>
+                <option value="('utf8','utf8_general_ci')">(collation)</option>
                 {% for key, collations in db_collations.items() %}
                 <optgroup label="{{key}}">
                     {{key}}
                     {% for collation in collations %}
-                    <option value="{{collation['COLLATION_NAME'],key}}">{{collation['COLLATION_NAME']}}</option>
+                    <option value="{{key,collation['COLLATION_NAME']}}">{{collation['COLLATION_NAME']}}</option>
                     {% endfor %}
                 </optgroup>
                 {% endfor %}
             </select>
-            <button class="btn btn-primary btn-sm ml-4" name="save_table" type="submit">Save</button>
+            <button class="btn btn-primary btn-sm ml-4" name="save_table" id="save_table" type="button">Save</button>
         </div>
         <div class="col-md-12 mt-2">
-            <table class="table table-bordered">
+            <table class="table table-bordered table_columns">
                 <thead>
                 <tr>
                     <th>Column Name</th>
@@ -147,6 +147,7 @@
                 </tbody>
             </table>
         </div>
+        <textarea class="hide" name="create_table_query" id="create_table_query"></textarea>
     </form>
 </div>
 <script type="text/javascript">
@@ -158,13 +159,17 @@
             //setting default values
             $(html).find('input').val('');
             $(html).find('.type').val('int').change();
+            $(html).find('.options').hide();
+            $(html).find('.col_option').show();
             $(html).find('input:checkbox').prop('checked',false);
             $(html).find('input:radio').prop('checked',false);
             $(this).closest('tbody').append(html);
         });
+
         $(document).on('click', '.fa-times', function () {
             $(this).closest('tr').remove();
         });
+
         $(document).on('change','.type',function (){
             $(this).closest('tr').find('.options').hide();
             let selected_option = $(this).val();
@@ -176,7 +181,55 @@
             }else if(label=='Strings'){
                 $(this).closest('tr').find('.col_collation').show();
             }
+        });
 
+        $(document).on('click','#save_table',function (){
+            let database = $('input[name="database"]').val();
+            let table_name = $('input[name="table_name"]').val();
+            let table_collation = $('select[name="table_collation"]').val();
+            table_collation = table_collation.replaceAll("'","").replace("(","").replace(")","").split(",");
+            let engine = $('select[name="engine"]').val();
+            let columns = '';
+            let column_length = '';
+            let column_null = '';
+            let primary_key = '';
+            let column_name = '';
+            $('.table_columns tr').each(function (){
+                primary_key = '';
+                column_name = $(this).find('input[name="column_name"]').val();
+                if(column_name!=='' && column_name!==undefined) {
+                    columns += column_name
+                        + ' '
+                        + $(this).find('select[name="column_type"]').val();
+                    //for column length
+                    column_length = $(this).find('input[name="length"]').val();
+                    if (column_length !== '') {
+                        columns += ' (' + column_length + ') ';
+                    }
+                    // for column null
+                    column_null = ' NOT NULL ';
+                    if ($(this).find('input[name="column_null"]').is(':checked')) {
+                        column_null = ' NULL ';
+                    }
+                    columns += column_null;
+                    // for column auto increment
+                    if ($(this).find('input[name="column_ai"]').is(':checked')) {
+                        columns += ' AUTO_INCREMENT ';
+                        primary_key += ' PRIMARY KEY ';
+                    }
+                    // for column default value
+                    if ($(this).find('input[name="column_is_default"]').is(':checked')) {
+                        columns += ' DEFAULT ' + $(this).find('input[name = "column_default_value"]').val();
+                    }
+                    // for primary key
+                    columns += primary_key + ',';
+                }
+            });
+            //removing last comma in columns string
+            columns = columns.slice(0,-1);
+            let query = 'CREATE TABLE '+table_name+'('+columns+') CHARACTER SET '+table_collation[0]+' COLLATE '+table_collation[1]+' ENGINE = '+engine+';';
+            $('#create_table_query').val(query);
+            $(this).closest('form').submit();
         });
     });
 </script>

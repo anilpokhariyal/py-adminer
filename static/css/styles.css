@@ -6,3 +6,6 @@ select{
     font-size: 14px;
     font-weight: bold;
 }
+.hide{
+    display: none !important;
+}
