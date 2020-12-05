@@ -64,7 +64,8 @@ def create_database():
                 query(connection, "use " + alter_db + ";")
                 for table in tables:
                     query(connection,
-                          "RENAME TABLE " + table['TABLE_NAME'] + " TO `" + db_name + "`.`" + table['TABLE_NAME'] + "`;")
+                          "RENAME TABLE " + table['TABLE_NAME'] + " TO `" + db_name + "`.`" + table[
+                              'TABLE_NAME'] + "`;")
                 query(connection, "DROP DATABASE " + alter_db + ";")
 
         return redirect('/')
@@ -232,6 +233,23 @@ def py_admin():
                            tables=tables, table_structure=table_structure, db_engines=db_engines,
                            table_data=table_data, table_columns=table_columns, db_collations=db_collations,
                            selected_db=selected_db, selected_table=selected_table)
+
+
+@app.route("/logout", methods=["GET", "POST"])
+def logout():
+    if 'system' in session:
+        session.pop('system')
+    if 'host' in session:
+        session.pop('host')
+    if 'user' in session:
+        session.pop('user')
+    if 'password' in session:
+        session.pop('password')
+    if 'database' in session:
+        session.pop('database')
+    if 'pass' in session:
+        session.pop('pass')
+    return redirect('/')
 
 
 if __name__ == '__main__':
