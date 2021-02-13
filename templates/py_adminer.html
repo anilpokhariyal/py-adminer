@@ -18,16 +18,20 @@
     {% include 'header.html' %}
     <div class="row">
         {% include 'sidebar.html' %}
-        <div class="col-md-10 mt-4">
+        <div class="col-md-10 mt-4 table-ground">
         {% if selected_table %}
             {% include 'table_options.html' %}
         {% endif %}
 
-        {% if not create and databases and not selected_db %}
+        {% if not create and databases and not selected_db and not sql_panel %}
             {% include 'database_options.html' %}
         {% endif %}
 
-        {% if tables and not selected_table %}
+        {% if sql_panel %}
+            <h5 class="col-md-12 bg-light p-4">SQL Query: <span class="text-primary">{{sql_query or ''}}</span></h5>
+        {% endif %}
+
+        {% if tables and not selected_table and not sql_panel %}
             <div class="row mt-4 mb-4">
                 <div class="col-md-2">
                     <a href="?create=alter_database&database={{selected_db}}">
@@ -48,8 +52,41 @@
             {% include 'create_database.html' %}
         {% elif create and create=='table' %}
             {% include 'create_table.html' %}
-        {% elif tables and not selected_table %}
+        {% elif tables and not selected_table and not sql_panel %}
             {% include 'list_tables.html' %}
+        {% elif sql_panel %}
+            <form method="POST">
+                <input type="hidden" name="database" value="{{selected_db}}">
+                {% if query_output %}
+                <div class="col-md-12">
+                    <table class="table table-bordered table-hover datatable">
+                        {% set table_data = query_output.fetchall() %}
+                        <thead>
+                            <tr>
+                                {% for k in table_data[0].keys() %}
+                                <th>{{k}}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                         {% for row in table_data %}
+                            <tr>
+                                {% for v in row.values() %}
+                                <td>{{v}}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            <div class="col-md-12 mt-4">
+                <textarea name="sql_query" class="col-md-12 border-dark" rows="15">{{sql_query or ''}}</textarea>
+            </div>
+            <div class="col-md-12">
+                <button class="btn btn-secondary">execute</button>
+            </div>
+            </form>
         {% elif databases and not selected_db %}
             {% include 'list_databases.html' %}
         {% elif selected_db and selected_table and table_structure %}
@@ -57,6 +94,7 @@
         {% elif selected_db and selected_table and table_data %}
             {% include 'table_data.html' %}
         {% endif %}
+
         </div>
     </div>
 </div>

@@ -18,9 +18,9 @@
                 <td>{{database['TABLES_COUNT']}}</td>
                 <td>
                     {% if database['SCHEMA_SIZE'] %}
-                    {{(database['SCHEMA_SIZE']/(1024))|int}} KB
+                        {{(database['SCHEMA_SIZE']/(1024))|int}} KB
                     {% else %}
-                    0 KB
+                        0 KB
                     {% endif %}
                 </td>
             </tr>

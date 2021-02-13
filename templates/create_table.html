@@ -9,8 +9,7 @@
             <input type="text" name="table_name" required>
             <select name="engine" required>
                 {% for engine in db_engines %}
-                <option value="{{engine['ENGINE']}}" {% if engine[
-                'SUPPORT'] == 'DEFAULT' %} selected {% endif %}>
+                <option value="{{engine['ENGINE']}}" {% if engine['SUPPORT'] == 'DEFAULT' %} selected {% endif %}>
                 {{engine['ENGINE']}}
                 </option>
                 {% endfor %}

@@ -130,6 +130,11 @@ def py_admin():
     selected_table = None
     action = request.args.get('action', None)
     create = request.args.get('create', None)
+    sql_panel = request.args.get('sql_panel', None)
+    if not sql_panel:
+        sql_panel = request.form.get('sql_panel', None)
+    sql_query = request.form.get('sql_query', None)
+    query_output = []
     if 'pass' in session:
         login = True
 
@@ -189,7 +194,7 @@ def py_admin():
                     else:
                         db_collations[collation['CHARACTER_SET_NAME']] = [collation, ]
 
-        # fetching tables from selected database
+        # fetching tables from selected database if not create request or sql_panel
         if request.args.get('database') and not create:
             database = str(request.args.get('database'))
             selected_db = database
@@ -223,6 +228,11 @@ def py_admin():
             data_query = "SELECT * FROM " + selected_table + " LIMIT " + str(limit)
             table_data = query(connection, data_query)
 
+        # for sql raw query execute
+        if sql_query:
+            query(connection, "use " + selected_db)
+            query_output = query(connection, sql_query)
+
         # required in case query fails
         if databases:
             session['pass'] = True
@@ -232,7 +242,8 @@ def py_admin():
                            mysql_version=mysql_version, create=create, action=action,
                            tables=tables, table_structure=table_structure, db_engines=db_engines,
                            table_data=table_data, table_columns=table_columns, db_collations=db_collations,
-                           selected_db=selected_db, selected_table=selected_table)
+                           selected_db=selected_db, selected_table=selected_table, sql_panel=sql_panel,
+                           sql_query=sql_query, query_output=query_output)
 
 
 @app.route("/logout", methods=["GET", "POST"])

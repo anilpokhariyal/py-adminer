@@ -18,4 +18,4 @@ services:
 networks:
   laradock_backend:
     external:
-      name: laradock_backend
+      name: py_network
