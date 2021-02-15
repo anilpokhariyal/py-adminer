@@ -61,6 +61,7 @@
                 <div class="col-md-12">
                     <table class="table table-bordered table-hover datatable">
                         {% set table_data = query_output.fetchall() %}
+                        {% if table_data %}
                         <thead>
                             <tr>
                                 {% for k in table_data[0].keys() %}
@@ -77,6 +78,14 @@
                             </tr>
                         {% endfor %}
                         </tbody>
+                        {% else %}
+                        <tbody>
+                        <tr>
+                            <th>No Data Found.</th>
+                        </tr>
+                        </tbody>
+                        {% endif %}
+
                     </table>
                 </div>
                 {% endif %}
