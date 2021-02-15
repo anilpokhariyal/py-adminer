@@ -50,7 +50,7 @@
             {% include 'login_mysql.html' %}
         {% elif create and (create == 'database' or create == 'alter_database') %}
             {% include 'create_database.html' %}
-        {% elif create and create=='table' %}
+        {% elif create and create == 'table' or action == 'alter' %}
             {% include 'create_table.html' %}
         {% elif tables and not selected_table and not sql_panel %}
             {% include 'list_tables.html' %}

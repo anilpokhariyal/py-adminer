@@ -6,7 +6,7 @@
         <div class="col-md-12 mt-4">
             <label>Table Name: </label>
             <input type="hidden" name="database" value="{{selected_db}}">
-            <input type="text" name="table_name" required>
+            <input type="text" name="table_name" value="{{selected_table}}" required>
             <select name="engine" required>
                 {% for engine in db_engines %}
                 <option value="{{engine['ENGINE']}}" {% if engine['SUPPORT'] == 'DEFAULT' %} selected {% endif %}>
@@ -42,6 +42,111 @@
                 </tr>
                 </thead>
                 <tbody>
+                {% if table_structure %}
+                {% for structure in table_structure %}
+                <tr>
+                    <td>
+                        <input type="text" name="column_name" value="{{structure['COLUMN_NAME']}}" required>
+                    </td>
+                    <td>
+                        <select name="column_type" class="type" aria-labelledby="label-type">
+                            <optgroup label="Numbers">
+                                <option {% if structure['COLUMN_TYPE']=='tinyint' %} selected {% endif %}>tinyint</option>
+                                <option {% if structure['COLUMN_TYPE']=='smallint' %} selected {% endif %}>smallint</option>
+                                <option {% if structure['COLUMN_TYPE']=='mediumint' %} selected {% endif %}>mediumint</option>
+                                <option {% if structure['COLUMN_TYPE']=='selected="">int' %} selected {% endif %} selected="">int</option>
+                                <option {% if structure['COLUMN_TYPE']=='bigint' %} selected {% endif %}>bigint</option>
+                                <option {% if structure['COLUMN_TYPE']=='decimal' %} selected {% endif %}>decimal</option>
+                                <option {% if structure['COLUMN_TYPE']=='float' %} selected {% endif %}>float</option>
+                                <option {% if structure['COLUMN_TYPE']=='double' %} selected {% endif %}>double</option>
+                            </optgroup>
+                            <optgroup label="Date and time">
+                                <option {% if structure['COLUMN_TYPE']=='date' %} selected {% endif %}>date</option>
+                                <option {% if structure['COLUMN_TYPE']=='datetime' %} selected {% endif %}>datetime</option>
+                                <option {% if structure['COLUMN_TYPE']=='timestamp' %} selected {% endif %}>timestamp</option>
+                                <option {% if structure['COLUMN_TYPE']=='time' %} selected {% endif %}>time</option>
+                                <option {% if structure['COLUMN_TYPE']=='year' %} selected {% endif %}>year</option>
+                            </optgroup>
+                            <optgroup label="Strings">
+                                <option {% if structure['COLUMN_TYPE']=='char' %} selected {% endif %}>char</option>
+                                <option {% if structure['COLUMN_TYPE']=='varchar' %} selected {% endif %}>varchar</option>
+                                <option {% if structure['COLUMN_TYPE']=='tinytext' %} selected {% endif %}>tinytext</option>
+                                <option {% if structure['COLUMN_TYPE']=='text' %} selected {% endif %}>text</option>
+                                <option {% if structure['COLUMN_TYPE']=='mediumtext' %} selected {% endif %}>mediumtext</option>
+                                <option {% if structure['COLUMN_TYPE']=='longtext' %} selected {% endif %}>longtext</option>
+                                <option {% if structure['COLUMN_TYPE']=='json' %} selected {% endif %}>json</option>
+                            </optgroup>
+                            <optgroup label="Lists">
+                                <option {% if structure['COLUMN_TYPE']=='enum' %} selected {% endif %}>enum</option>
+                                <option {% if structure['COLUMN_TYPE']=='set' %} selected {% endif %}>set</option>
+                            </optgroup>
+                            <optgroup label="Binary">
+                                <option {% if structure['COLUMN_TYPE']=='bit' %} selected {% endif %}>bit</option>
+                                <option {% if structure['COLUMN_TYPE']=='binary' %} selected {% endif %}>binary</option>
+                                <option {% if structure['COLUMN_TYPE']=='varbinary' %} selected {% endif %}>varbinary</option>
+                                <option {% if structure['COLUMN_TYPE']=='tinyblob' %} selected {% endif %}>tinyblob</option>
+                                <option {% if structure['COLUMN_TYPE']=='blob' %} selected {% endif %}>blob</option>
+                                <option {% if structure['COLUMN_TYPE']=='mediumblob' %} selected {% endif %}>mediumblob</option>
+                                <option {% if structure['COLUMN_TYPE']=='longblob' %} selected {% endif %}>longblob</option>
+                            </optgroup>
+                            <optgroup label="Geometry">
+                                <option {% if structure['COLUMN_TYPE']=='geometry' %} selected {% endif %}>geometry</option>
+                                <option {% if structure['COLUMN_TYPE']=='point' %} selected {% endif %}>point</option>
+                                <option {% if structure['COLUMN_TYPE']=='linestring' %} selected {% endif %}>linestring</option>
+                                <option {% if structure['COLUMN_TYPE']=='polygon' %} selected {% endif %}>polygon</option>
+                                <option {% if structure['COLUMN_TYPE']=='multipoint' %} selected {% endif %}>multipoint</option>
+                                <option {% if structure['COLUMN_TYPE']=='multilinestring' %} selected {% endif %}>multilinestring</option>
+                                <option {% if structure['COLUMN_TYPE']=='multipolygon' %} selected {% endif %}>multipolygon</option>
+                                <option {% if structure['COLUMN_TYPE']=='geometrycollection' %} selected {% endif %}>geometrycollection</option>
+                            </optgroup>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="length">
+                    </td>
+                    <td>
+                        <select name="column_option" class="options col_option">
+                            <option>unsigned</option>
+                            <option>zerofill</option>
+                            <option>unsigned zerofill</option>
+                        </select>
+                        <select name="column_collation" class="options col_collation">
+                            <option value="('utf8_general_ci','utf8')">(collation)</option>
+                            {% for key, collations in db_collations.items() %}
+                            <optgroup label="{{key}}">
+                                {{key}}
+                                {% for collation in collations %}
+                                <option value="{{collation['COLLATION_NAME'],key}}">
+                                    {{collation['COLLATION_NAME']}}
+                                </option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endfor %}
+                        </select>
+                        <select name="column_on_update" class="options col_on_update">
+                            <option value="" selected="">(ON UPDATE)</option>
+                            <option>CURRENT_TIMESTAMP</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="column_null" {% if structure['IS_NULLABLE']=='YES' %} checked {% endif %}>
+                    </td>
+                    <td>
+                        <input type="radio" name="column_ai" {% if structure['EXTRA']=="auto_increment" %} checked {% endif %}>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="column_is_default" {% if structure['COLUMN_DEFAULT'] %} checked {% endif %}>
+                        <input type="text" name="column_default_value" value="{{structure['COLUMN_DEFAULT'] or ''}}">
+                    </td>
+                    <td>
+                        <em class="fa fa-plus"></em>
+                        <em class="fa fa-arrow-up"></em>
+                        <em class="fa fa-arrow-down"></em>
+                        <em class="fa fa-times"></em>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
                 <tr>
                     <td>
                         <input type="text" name="column_name" required>
@@ -143,6 +248,7 @@
                         <em class="fa fa-times"></em>
                     </td>
                 </tr>
+                {% endif %}
                 </tbody>
             </table>
         </div>

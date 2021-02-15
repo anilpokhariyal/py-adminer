@@ -173,7 +173,7 @@ def py_admin():
             selected_db = database
 
         # options of collation and engine for creating database or table
-        if create:
+        if create or action=='alter':
             # fetching all collations for database collection type on UI
             query(connection, "use information_schema;")
             all_collations = query(connection, "SELECT * FROM COLLATIONS ORDER BY SORTLEN ASC")
@@ -183,16 +183,10 @@ def py_admin():
                 else:
                     db_collations[collation['CHARACTER_SET_NAME']] = [collation, ]
 
-            if create == 'table':
-                # for create table
-                query(connection, "use information_schema;")
-                db_engines = query(connection, "SELECT * FROM ENGINES")
-                column_types = query(connection, "SELECT * FROM COLLATIONS ORDER BY SORTLEN ASC")
-                for collation in all_collations:
-                    if collation['CHARACTER_SET_NAME'] in db_collations:
-                        db_collations[collation['CHARACTER_SET_NAME']].append(collation)
-                    else:
-                        db_collations[collation['CHARACTER_SET_NAME']] = [collation, ]
+            # for create table
+            query(connection, "use information_schema;")
+            db_engines = query(connection, "SELECT * FROM ENGINES")
+            column_types = query(connection, "SELECT * FROM COLLATIONS ORDER BY SORTLEN ASC")
 
         # fetching tables from selected database if not create request or sql_panel
         if request.args.get('database') and not create:
@@ -205,7 +199,7 @@ def py_admin():
             tables = query(connection, table_query)
 
         # fetching table data and structure
-        if selected_db and request.args.get('table') and not action:
+        if selected_db and request.args.get('table') and (not action or action == 'alter'):
             table_name = str(request.args.get('table'))
             selected_table = table_name
             query(connection, "use information_schema;")
@@ -215,7 +209,7 @@ def py_admin():
         # todo index and foreign keys
 
         # fetching table data
-        if selected_db and request.args.get('table') and action:
+        if selected_db and request.args.get('table') and action == 'data':
             table_name = str(request.args.get('table'))
             selected_table = table_name
             limit = 1000
