@@ -1,5 +1,5 @@
  <!-- sidebar -->
-<div class="col-md-2" style="overflow: auto !important;">
+<div class="col-md-2" style="overflow: auto !important;max-height: 910px;">
     <h4>Databases</h4>
     {% if login %}
         <select class="form-control" onchange="location.href='?database='+this.value">
@@ -13,6 +13,11 @@
     {% endif %}
 
     <ul class="pt-4" style="list-style: none; padding-left: 2px !important;">
+        {% if login %}
+        <span class="pt-4"><a href="?database={{selected_db if selected_db}}"> Home </a></span> |
+        <span class="pt-4"><a href="?database={{selected_db if selected_db}}&sql_panel=1"> SQL Query </a></span>
+        {% endif %}
+        <hr>
     {% if not selected_db %}
         {% for database in databases %}
             <li> <a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></li>

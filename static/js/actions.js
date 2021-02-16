@@ -23,6 +23,10 @@
             alert("Please select at least one database to drop.");
           }
        });
+
+       $(document).on('click','#drop_databases_menu',function (){
+          $('#drop_databases').click();
+       });
     });
 
     function count_selected_databases(){

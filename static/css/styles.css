@@ -6,3 +6,16 @@ select{
     font-size: 14px;
     font-weight: bold;
 }
+.hide{
+    display: none !important;
+}
+.pointer{
+    cursor: pointer !important;
+}
+#drop_databases_menu{
+    color: #007bff !important;
+}
+.table-ground{
+    width: 800px;
+    overflow: auto;
+}
