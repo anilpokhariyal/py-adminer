@@ -16,6 +16,7 @@ select{
     color: #007bff !important;
 }
 .table-ground{
-    width: 800px;
+    width: 100%;
+    max-height: 884px;
     overflow: auto;
 }
