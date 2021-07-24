@@ -1,5 +1,5 @@
   $(document).ready(function (){
-       $('.datatable').DataTable();
+       $('.datatable').DataTable({"order": []});
        //select/deselect databases
        $(document).on("click","#check_all_db",function (){
            if($(this).is(":checked")) {

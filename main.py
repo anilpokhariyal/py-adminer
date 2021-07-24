@@ -121,6 +121,10 @@ def py_admin():
     tables = []
     table_structure = []
     table_data = []
+    data_query = ''
+    order_by = ''
+    order = 'asc'
+    limit = 1000
     table_columns = []
     db_engines = []
     column_types = []
@@ -212,14 +216,20 @@ def py_admin():
         if selected_db and request.args.get('table') and action == 'data':
             table_name = str(request.args.get('table'))
             selected_table = table_name
-            limit = 1000
+            limit = request.form.get('limit',1000)
+            order_by = request.form.get('order_by')
+            order = request.form.get('order','asc')
             query(connection, "use information_schema;")
             col_query = "SELECT COLUMN_NAME FROM COLUMNS " \
                         " WHERE TABLE_NAME='" + table_name + "' " \
-                                                             " AND TABLE_SCHEMA='" + selected_db + "'"
+                         " AND TABLE_SCHEMA='" + selected_db + "'"
+
             table_columns = query(connection, col_query)
             query(connection, "use " + selected_db)
-            data_query = "SELECT * FROM " + selected_table + " LIMIT " + str(limit)
+            order_query = ''
+            if order_by:
+                order_query = " ORDER BY " + str(order_by) + " " + str(order)
+            data_query = "SELECT * FROM " + str(selected_table) + order_query + " LIMIT " + str(limit)
             table_data = query(connection, data_query)
 
         # for sql raw query execute
@@ -235,7 +245,9 @@ def py_admin():
     return render_template('py_adminer.html', py_admin_url="/py_adminer", login=login, databases=databases,
                            mysql_version=mysql_version, create=create, action=action,
                            tables=tables, table_structure=table_structure, db_engines=db_engines,
-                           table_data=table_data, table_columns=table_columns, db_collations=db_collations,
+                           data_query=data_query,
+                           table_data=table_data, order_by=order_by, order=order, limit=limit,
+                           table_columns=table_columns, db_collations=db_collations,
                            selected_db=selected_db, selected_table=selected_table, sql_panel=sql_panel,
                            sql_query=sql_query, query_output=query_output)
 

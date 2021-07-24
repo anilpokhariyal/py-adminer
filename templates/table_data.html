@@ -1,3 +1,43 @@
+<div class="row mt-2 mb-2">
+    <form name="select_query" method="POST" action="#">
+        <div class="col-md-12">
+            <div class="row">
+            <div class="col-md-3">
+                <label>Order By</label>
+                <select class="form-control" name="order_by">
+                    {% for column in table_columns %}
+                        <option value="{{column['COLUMN_NAME']}}"
+                                {% if order_by == column['COLUMN_NAME'] %} selected {% endif %}>
+                            {{column['COLUMN_NAME']}}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label style="color:#fff">Order</label>
+                <select class="form-control" name="order">
+                    <option value="asc" {% if order == "asc" %} selected {% endif %}>asc</option>
+                    <option value="desc" {% if order == "desc" %} selected {% endif %}>desc</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Limit</label>
+                <input type="number" name="limit" class="form-control" value="{{limit}}">
+            </div>
+            <div class="col-md-3 pt-4 mt-2">
+                <label style="color:#fff">Action</label>
+                <button type="submit" class="btn btn-primary" name="filter_query">Select</button>
+            </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="row mt-1 mb-1">
+    <div class="col-md-12 p-2 bg-light">
+        <p>{{data_query or ''}}</p>
+    </div>
+</div>
+
 <table class="table table-bordered mt-4 datatable">
     <thead>
         <tr>
