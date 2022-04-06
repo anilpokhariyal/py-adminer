@@ -220,16 +220,18 @@ def py_admin():
             order_by = request.form.get('order_by')
             order = request.form.get('order','asc')
             query(connection, "use information_schema;")
-            col_query = "SELECT COLUMN_NAME FROM COLUMNS " \
-                        " WHERE TABLE_NAME='" + table_name + "' " \
-                         " AND TABLE_SCHEMA='" + selected_db + "'"
+            col_query = "SELECT COLUMN_NAME FROM `COLUMNS` " \
+                        "WHERE TABLE_NAME='" + table_name + "' " \
+                        "AND TABLE_SCHEMA='" + selected_db + "' "\
+                        "ORDER BY ORDINAL_POSITION ASC"
 
             table_columns = query(connection, col_query)
             query(connection, "use " + selected_db)
             order_query = ''
             if order_by:
                 order_query = " ORDER BY " + str(order_by) + " " + str(order)
-            data_query = "SELECT * FROM " + str(selected_table) + order_query + " LIMIT " + str(limit)
+            data_query = "SELECT * FROM `" + str(selected_table) + "`" + order_query + " LIMIT " + str(limit)
+
             table_data = query(connection, data_query)
 
         # for sql raw query execute
