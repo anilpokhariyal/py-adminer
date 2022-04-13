@@ -31,6 +31,9 @@
             <h5 class="col-md-12 bg-light p-4">SQL Query: <span class="text-primary">{{sql_query or ''}}</span></h5>
         {% endif %}
 
+        {% if error %}
+            <div class="text-danger">{{ error }}</div>
+        {% endif %}
         {% if tables and not selected_table and not sql_panel %}
             <div class="row mt-4 mb-4">
                 <div class="col-md-2">

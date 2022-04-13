@@ -25,11 +25,23 @@ def mysql_config():
 
 
 def query(connection, query):
-    cursor = connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute(query)
-    connection.commit()
-    return cursor
+    error = None
+    try:
+        cursor = connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(query)
+        connection.commit()
+        return cursor
+    except MySQLdb._exceptions.OperationalError as err:
+        app.logger.error("MYSQL Connection Error: {}".format(err))
+        error = err
+    except MySQLdb._exceptions.ProgrammingError as err:
+        app.logger.error("MYSQL Programming Error: {}".format(err))
+        error = err
+    except Exception as err:
+        app.logger.error("Error: {}".format(err))
+        error = err
 
+    session['error'] = str(error)
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -132,25 +144,25 @@ def py_admin():
     login = False
     selected_db = None
     selected_table = None
-    action = request.args.get('action', None)
-    create = request.args.get('create', None)
-    sql_panel = request.args.get('sql_panel', None)
+    action = request.values.get('action', None)
+    create = request.values.get('create', None)
+    sql_panel = request.values.get('sql_panel', None)
     if not sql_panel:
-        sql_panel = request.form.get('sql_panel', None)
-    sql_query = request.form.get('sql_query', None)
+        sql_panel = request.values.get('sql_panel', None)
+    sql_query = request.values.get('sql_query', None)
     query_output = []
     if 'pass' in session:
         login = True
 
     if request.method == "POST" or 'pass' in session:
         if 'pass' not in session:
-            session['system'] = request.form.get('system', 'mysql')
-            session['host'] = request.form.get('server', 'localhost')
-            session['user'] = request.form.get('username')
-            session['password'] = request.form.get('password')
-            session['database'] = request.form.get('database')
+            session['system'] = request.values.get('system', 'mysql')
+            session['host'] = request.values.get('server', 'localhost')
+            session['user'] = request.values.get('username')
+            session['password'] = request.values.get('password')
+            session['database'] = request.values.get('database')
             mysql_config()
-            return redirect('/py_adminer?database=' + request.form.get('database'))
+            return redirect('/py_adminer?database=' + request.values.get('database'))
     # for mysql engine connection
     if 'system' in session and session['system'] == 'mysql':
         try:
@@ -244,6 +256,12 @@ def py_admin():
             session['pass'] = True
             login = True
 
+    # error display on py_adminer
+    error = None
+    if "error" in session:
+        error = session['error']
+        session.pop("error")
+
     return render_template('py_adminer.html', py_admin_url="/py_adminer", login=login, databases=databases,
                            mysql_version=mysql_version, create=create, action=action,
                            tables=tables, table_structure=table_structure, db_engines=db_engines,
@@ -251,7 +269,7 @@ def py_admin():
                            table_data=table_data, order_by=order_by, order=order, limit=limit,
                            table_columns=table_columns, db_collations=db_collations,
                            selected_db=selected_db, selected_table=selected_table, sql_panel=sql_panel,
-                           sql_query=sql_query, query_output=query_output)
+                           sql_query=sql_query, query_output=query_output, error=error)
 
 
 @app.route("/logout", methods=["GET", "POST"])
