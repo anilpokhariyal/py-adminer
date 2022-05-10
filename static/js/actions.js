@@ -27,6 +27,12 @@
        $(document).on('click','#drop_databases_menu',function (){
           $('#drop_databases').click();
        });
+
+       // adding new row of search column in data
+      $(document).on('click','.add_another_search',function (){
+        $('.search_row').append($('.pysearch').clone());
+        $('.tbs-field-value').last().val("");
+      });
     });
 
     function count_selected_databases(){

@@ -1,7 +1,131 @@
 <div class="row mt-2 mb-2">
     <form name="select_query" method="POST" action="#">
         <div class="col-md-12">
-            <div class="row">
+        <div class="search_row">
+        {% if search_value|length %}
+        {% for i in range(search_value|length) %}
+        <div class="row pysearch">
+            <div class="col-md-3">
+                <label>Search</label>
+                <select class="tbs-field form-control" name="search_by[]">
+                    {% for column in table_columns %}
+                        <option value="{{column['COLUMN_NAME']}}"
+                                {% if search_by[i] == column['COLUMN_NAME'] %} selected {% endif %}>
+                            {{column['COLUMN_NAME']}}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Ex</label>
+                <select class="tbs-field form-control" name="expression[]">
+                    <option {% if expression[i]== "=" %} selected {% endif %}>
+                        =
+                    </option>
+                    <option {% if expression[i]== "<" %} selected {% endif %}>
+                        &lt;
+                    </option>
+                    <option {% if expression[i]== ">" %} selected {% endif %}>
+                        &gt;
+                    </option>
+                    <option {% if expression[i]== "<=" %} selected {% endif %}>
+                        &lt;=
+                    </option>
+                    <option {% if expression[i]== ">=" %} selected {% endif %}>
+                        &gt;=
+                    </option>
+                    <option {% if expression[i]== "!=" %} selected {% endif %}>
+                        !=
+                    </option>
+                    <option {% if expression[i]== "LIKE" %} selected {% endif %}>
+                        LIKE
+                    </option>
+                    <option {% if expression[i]== "LIKE %%" %} selected {% endif %}>
+                        LIKE %%
+                    </option>
+                    <option {% if expression[i]== "REGEXP" %} selected {% endif %}>
+                        REGEXP
+                    </option>
+                    <option {% if expression[i]== "IN" %} selected {% endif %}>
+                        IN
+                    </option>
+                    <option {% if expression[i]== "FIND_IN_SET" %} selected {% endif %}>
+                        FIND_IN_SET
+                    </option>
+                    <option {% if expression[i]== "IS NULL" %} selected {% endif %}>
+                        IS NULL
+                    </option>
+                    <option {% if expression[i]== "NOT LIKE" %} selected {% endif %}>
+                        NOT LIKE
+                    </option>
+                    <option {% if expression[i]== "NOT REGEXP" %} selected {% endif %}>
+                        NOT REGEXP
+                    </option>
+                    <option {% if expression[i]== "NOT IN" %} selected {% endif %}>
+                        NOT IN
+                    </option>
+                    <option {% if expression[i]== "IS NOT NULL" %} selected {% endif %}>
+                        IS NOT NULL
+                    </option>
+                    <option {% if expression[i]== "SQL" %} selected {% endif %}>
+                        SQL
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Value</label>
+                <input type="text" name="search_value[]" class="tbs-field form-control" value="{{ search_value[i] }}">
+            </div>
+            <div class="col-md-1 mt-4">
+                <span class="fa fa-plus add_another_search" title="Add another Search"></span>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="row pysearch">
+            <div class="col-md-3">
+                <label>Search</label>
+                <select class="tbs-field form-control" name="search_by[]">
+                    {% for column in table_columns %}
+                        <option value="{{column['COLUMN_NAME']}}">
+                            {{column['COLUMN_NAME']}}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Ex</label>
+                <select class="tbs-field form-control" name="expression[]">
+                    <option>=</option>
+                    <option>&lt;</option>
+                    <option>&gt;</option>
+                    <option>&lt;=</option>
+                    <option>&gt;=</option>
+                    <option>!=</option>
+                    <option>LIKE</option>
+                    <option>LIKE %%</option>
+                    <option>REGEXP</option>
+                    <option>IN</option>
+                    <option>FIND_IN_SET</option>
+                    <option>IS NULL</option>
+                    <option>NOT LIKE</option>
+                    <option>NOT REGEXP</option>
+                    <option>NOT IN</option>
+                    <option>IS NOT NULL</option>
+                    <option>SQL</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Value</label>
+                <input type="text" name="search_value[]" class="tbs-field-value form-control" value="">
+            </div>
+            <div class="col-md-1 mt-4">
+                <span class="fa fa-plus add_another_search" title="Add another Search"></span>
+            </div>
+        </div>
+        {% endif %}
+        </div>
+        <div class="row">
             <div class="col-md-3">
                 <label>Order By</label>
                 <select class="form-control" name="order_by">
