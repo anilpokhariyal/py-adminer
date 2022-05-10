@@ -20,7 +20,7 @@ select{
     max-height: 884px;
     overflow: auto;
 }
-.search-row{
+.search_row{
     border: 1px solid #d0c6c6;
     padding: 14px;
 }
