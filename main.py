@@ -275,7 +275,7 @@ def py_admin():
                         where_query += " WHERE "
                     else:
                         where_query += " AND "
-                    where_query += search_by[k] + expression[k] + '"' + search_value[k] + '"'
+                    where_query += "`"+search_by[k]+"`" + expression[k] + '"' + search_value[k] + '"'
 
             limit = request.form.get("limit", 1000)
             order_by = request.form.get("order_by")
