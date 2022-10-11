@@ -7,6 +7,7 @@
         {% elif tables %}
         {% if selected_table %}
             <h3>Table : {{selected_table}}</h3>
+            <input type="hidden" id="selected_table_name" name="selected_table_name" value="{{selected_table}}">
         {% else %}
             <h3>Tables</h3>
         {% endif %}

@@ -165,6 +165,7 @@
 <table class="table table-bordered mt-4 datatable">
     <thead>
         <tr>
+            <th>Action</th>
             {% for column in table_columns %}
             <th>
                 {{column['COLUMN_NAME']}}
@@ -174,11 +175,32 @@
     </thead>
     {% for data in table_data %}
         <tr>
-            {% for column in table_columns %}
             <td>
+                <em class="fa fa-edit pointer edit_row" title="Edit Row"></em>
+                <em class="fa fa-trash pointer delete_row" title="Delete Row" id="{{ data['id'] }}"></em>
+            </td>
+            {% for column in table_columns %}
+            <td class="{{column['COLUMN_NAME']}}">
                 {{data[column['COLUMN_NAME']]}}
             </td>
             {% endfor %}
         </tr>
     {% endfor %}
 </table>
+{% include 'edit_row.html' %}
+<script type="text/javascript">
+    $(document).ready(function(){
+       $(document).on('click', '.delete_row', function (){
+          let id = $(this).attr("id");
+          let table_name = $('#selected_table_name').val();
+          let database = "{{ selected_db }}";
+          if (confirm("Are you sure to delete this row?")) {
+              let xhr = new XMLHttpRequest();
+              xhr.open("POST", "/delete_table_row_by_id", true);
+              xhr.setRequestHeader('Content-Type', 'application/json');
+              xhr.send(JSON.stringify({"table_name": table_name, "id": id, "database": database}));
+              $(this).closest('tr').remove();
+          }
+       });
+    });
+</script>
