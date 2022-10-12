@@ -24,3 +24,8 @@ select{
     border: 1px solid #d0c6c6;
     padding: 14px;
 }
+
+#edit_form{
+    max-height: 652px;
+    overflow: auto;
+}
