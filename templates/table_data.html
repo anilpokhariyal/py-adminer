@@ -180,7 +180,7 @@
                 <em class="fa fa-trash pointer delete_row" title="Delete Row" id="{{ data['id'] }}"></em>
             </td>
             {% for column in table_columns %}
-            <td class="{{column['COLUMN_NAME']}}">
+            <td column_name="{{column['COLUMN_NAME']}}">
                 {{data[column['COLUMN_NAME']]}}
             </td>
             {% endfor %}

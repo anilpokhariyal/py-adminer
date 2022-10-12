@@ -161,6 +161,32 @@ def delete_table_row_by_id():
     return jsonify({"status": "success", "msg": "Table row deleted successfully."})
 
 
+@app.route("/update_table_data_by_id", methods=["POST"])
+def update_table_data_by_id():
+    """create table in selected database"""
+    data = request.form()
+    database = data.get("database")
+    table_name = data.get("table_name")
+    id = data.get("id")
+    # for mysql engine connection
+    if "system" in session and session["system"] == "mysql":
+        try:
+            connection = mysql_connection()
+        except ConnectionError as ex:
+            return redirect("/")
+
+        update_query = ""  # todo
+        # use databases and create table
+        try:
+            query(connection, "use {};".format(database))
+            create_query = "update {} set {} where id={}".format(table_name, update_query, id)
+            query(connection, create_query)
+        except (MySQLdb.Error, MySQLdb.Warning) as e:
+            print(e)
+
+    return redirect("/py_adminer?database={}&table={}&action=data".format(database, table_name))
+
+
 @app.route("/py_adminer", methods=["GET", "POST"])
 def py_admin():
     """PyAdminer provide you web interface to manage your database.
@@ -307,7 +333,7 @@ def py_admin():
             order = request.form.get("order", "asc")
             query(connection, "use information_schema;")
             col_query = (
-                    "SELECT COLUMN_NAME FROM `COLUMNS` "
+                    "SELECT COLUMN_NAME, COLUMN_TYPE FROM `COLUMNS` "
                     "WHERE TABLE_NAME='" + table_name + "' "
                                                         "AND TABLE_SCHEMA='" + selected_db + "' "
                                                                                              "ORDER BY ORDINAL_POSITION ASC"

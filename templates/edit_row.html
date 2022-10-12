@@ -9,14 +9,20 @@
       </div>
       <div class="modal-body" id="edit_form">
       <div class="row">
-        {% for column in table_columns %}
+      <form method="POST" action="/update_table_data_by_id" id="edit_row_form">
+        {% for structure in table_columns %}
           <div class="col-md-12">
               <label>
-                {{column['COLUMN_NAME']}}
+                  {{structure['COLUMN_NAME']}}
               </label>
-              <input type="text" class="form-control edit_field" name="{{column['COLUMN_NAME']}}">
+              {% if structure['COLUMN_TYPE'] in ("text", "longtext", "mediumtext") %}
+                  <textarea class="form-control edit_field" rows="6" name="{{structure['COLUMN_NAME']}}"></textarea>
+              {% else %}
+              <input type="text" class="form-control edit_field" name="{{structure['COLUMN_NAME']}}">
+              {% endif %}
           </div>
         {% endfor %}
+      </form>
       </div>
       </div>
       <div class="modal-footer">
@@ -32,9 +38,16 @@
     $(document).ready(function(){
        $(document).on('click','.edit_row',function (){
            $(this).closest('tr').find('td').each(function(){
-               $('input[name='+$(this).attr('class')+']').val($.trim($(this).html()));
+               if($('input[name='+$(this).attr('column_name')+']').length > 0) {
+                   $('input[name=' + $(this).attr('column_name') + ']').val($.trim($(this).html()));
+               }else if($('textarea[name='+$(this).attr('column_name')+']').length > 0){
+                   $('textarea[name=' + $(this).attr('column_name') + ']').val($.trim($(this).html()));
+               }
            })
             $('#edit_table_data_modal').modal('show');
+       });
+       $(document).on('click', '#edit_save_table_data', function (){
+          $('#edit_row_form').trigger('submit');
        });
     });
 </script>
