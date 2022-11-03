@@ -33,6 +33,10 @@
         $('.search_row').append($('.pysearch').clone());
         $('.tbs-field-value').last().val("");
       });
+
+      $(document).on('click', '.remove_search', function (){
+          $(this).closest('.pysearch').remove();
+      });
     });
 
     function count_selected_databases(){
