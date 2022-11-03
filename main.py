@@ -66,7 +66,7 @@ def create_database():
             create_db = "CREATE DATABASE " + db_name
             if collation:
                 create_db += (
-                        " CHARACTER SET " + collation[1] + " COLLATE " + collation[0] + ";"
+                    " CHARACTER SET " + collation[1] + " COLLATE " + collation[0] + ";"
                 )
             query(connection, create_db)
 
@@ -74,9 +74,9 @@ def create_database():
             if alter_db and alter_db != "None":
                 query(connection, "use information_schema;")
                 table_query = (
-                        "SELECT TABLE_NAME FROM TABLES WHERE TABLE_SCHEMA = '"
-                        + alter_db
-                        + "'"
+                    "SELECT TABLE_NAME FROM TABLES WHERE TABLE_SCHEMA = '"
+                    + alter_db
+                    + "'"
                 )
                 tables = query(connection, table_query)
 
@@ -164,7 +164,7 @@ def delete_table_row_by_id():
 @app.route("/update_table_data_by_id", methods=["POST"])
 def update_table_data_by_id():
     """create table in selected database"""
-    data = request.form()
+    data = dict(request.form)
     database = data.get("database")
     table_name = data.get("table_name")
     id = data.get("id")
@@ -174,17 +174,47 @@ def update_table_data_by_id():
             connection = mysql_connection()
         except ConnectionError as ex:
             return redirect("/")
+        #########################################
+        # Fetching the columns of the table
+        #########################################
+        query(connection, "use information_schema;")
+        col_query = (
+            "SELECT COLUMN_NAME, COLUMN_TYPE FROM `COLUMNS` "
+            "WHERE TABLE_NAME='" + table_name + "' "
+            "AND TABLE_SCHEMA='" + database + "' "
+            "ORDER BY ORDINAL_POSITION ASC"
+        )
 
-        update_query = ""  # todo
+        table_columns = query(connection, col_query)
+        ########## table columns ends here #################
+        update_query = ""
+        for column in table_columns:
+            val = (
+                data.get(column["COLUMN_NAME"])
+                if data.get(column["COLUMN_NAME"])
+                else None
+            )
+
+            if val:
+                update_query += "{}='{}', ".format(column["COLUMN_NAME"], val)
+            else:
+                update_query += "{}='', ".format(column["COLUMN_NAME"])
+
+        update_query = update_query[:-2]
+
         # use databases and create table
         try:
             query(connection, "use {};".format(database))
-            create_query = "update {} set {} where id={}".format(table_name, update_query, id)
+            create_query = "update {} set {} where id={}".format(
+                table_name, update_query, id
+            )
             query(connection, create_query)
         except (MySQLdb.Error, MySQLdb.Warning) as e:
             print(e)
 
-    return redirect("/py_adminer?database={}&table={}&action=data".format(database, table_name))
+    return redirect(
+        "/py_adminer?database={}&table={}&action=data".format(database, table_name)
+    )
 
 
 @app.route("/py_adminer", methods=["GET", "POST"])
@@ -286,28 +316,28 @@ def py_admin():
             selected_db = database
             query(connection, "use information_schema;")
             table_query = (
-                    "SELECT TABLE_NAME, ENGINE,TABLE_ROWS, DATA_LENGTH, INDEX_LENGTH,"
-                    " AUTO_INCREMENT, TABLE_COLLATION, TABLE_COMMENT "
-                    " FROM TABLES WHERE TABLE_SCHEMA = '" + database + "'"
+                "SELECT TABLE_NAME, ENGINE,TABLE_ROWS, DATA_LENGTH, INDEX_LENGTH,"
+                " AUTO_INCREMENT, TABLE_COLLATION, TABLE_COMMENT "
+                " FROM TABLES WHERE TABLE_SCHEMA = '" + database + "'"
             )
             tables = query(connection, table_query)
 
         # fetching table data and structure
         if (
-                selected_db
-                and request.args.get("table")
-                and (not action or action == "alter")
+            selected_db
+            and request.args.get("table")
+            and (not action or action == "alter")
         ):
             table_name = str(request.args.get("table"))
             selected_table = table_name
             query(connection, "use information_schema;")
             structure_query = (
-                    "SELECT COLUMN_NAME,IS_NULLABLE,COLUMN_DEFAULT,COLUMN_TYPE,COLUMN_KEY,EXTRA,COLUMN_COMMENT FROM COLUMNS "
-                    " WHERE TABLE_NAME='"
-                    + table_name
-                    + "' AND TABLE_SCHEMA='"
-                    + selected_db
-                    + "' ORDER BY ORDINAL_POSITION ASC"
+                "SELECT COLUMN_NAME,IS_NULLABLE,COLUMN_DEFAULT,COLUMN_TYPE,COLUMN_KEY,EXTRA,COLUMN_COMMENT FROM COLUMNS "
+                " WHERE TABLE_NAME='"
+                + table_name
+                + "' AND TABLE_SCHEMA='"
+                + selected_db
+                + "' ORDER BY ORDINAL_POSITION ASC"
             )
             table_structure = query(connection, structure_query)
         # todo index and foreign keys
@@ -326,17 +356,25 @@ def py_admin():
                         where_query += " WHERE "
                     else:
                         where_query += " AND "
-                    where_query += "`" + search_by[k] + "`" + expression[k] + '"' + search_value[k] + '"'
+                    where_query += (
+                        "`"
+                        + search_by[k]
+                        + "`"
+                        + expression[k]
+                        + '"'
+                        + search_value[k]
+                        + '"'
+                    )
 
             limit = request.form.get("limit", 1000)
             order_by = request.form.get("order_by")
             order = request.form.get("order", "asc")
             query(connection, "use information_schema;")
             col_query = (
-                    "SELECT COLUMN_NAME, COLUMN_TYPE FROM `COLUMNS` "
-                    "WHERE TABLE_NAME='" + table_name + "' "
-                                                        "AND TABLE_SCHEMA='" + selected_db + "' "
-                                                                                             "ORDER BY ORDINAL_POSITION ASC"
+                "SELECT COLUMN_NAME, COLUMN_TYPE FROM `COLUMNS` "
+                "WHERE TABLE_NAME='" + table_name + "' "
+                "AND TABLE_SCHEMA='" + selected_db + "' "
+                "ORDER BY ORDINAL_POSITION ASC"
             )
 
             table_columns = query(connection, col_query)
@@ -345,13 +383,13 @@ def py_admin():
             if order_by:
                 order_query = " ORDER BY " + str(order_by) + " " + str(order)
             data_query = (
-                    "SELECT * FROM `"
-                    + str(selected_table)
-                    + "`"
-                    + where_query
-                    + order_query
-                    + " LIMIT "
-                    + str(limit)
+                "SELECT * FROM `"
+                + str(selected_table)
+                + "`"
+                + where_query
+                + order_query
+                + " LIMIT "
+                + str(limit)
             )
 
             table_data = query(connection, data_query)
