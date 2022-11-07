@@ -8,8 +8,10 @@
         </button>
       </div>
       <div class="modal-body" id="edit_form">
-      <div class="row">
+      <div class="">
       <form method="POST" action="/update_table_data_by_id" id="edit_row_form">
+          <input type="hidden" name="database" value="{{ selected_db }}">
+          <input type="hidden" name="table_name" value="{{ selected_table }}">
         {% for structure in table_columns %}
           <div class="col-md-12">
               <label>
@@ -38,10 +40,14 @@
     $(document).ready(function(){
        $(document).on('click','.edit_row',function (){
            $(this).closest('tr').find('td').each(function(){
+               let val = $.trim($(this).html());
+               if (!val || val == "None"){
+                   val = '';
+               }
                if($('input[name='+$(this).attr('column_name')+']').length > 0) {
-                   $('input[name=' + $(this).attr('column_name') + ']').val($.trim($(this).html()));
+                   $('input[name=' + $(this).attr('column_name') + ']').val(val);
                }else if($('textarea[name='+$(this).attr('column_name')+']').length > 0){
-                   $('textarea[name=' + $(this).attr('column_name') + ']').val($.trim($(this).html()));
+                   $('textarea[name=' + $(this).attr('column_name') + ']').val(val);
                }
            })
             $('#edit_table_data_modal').modal('show');
