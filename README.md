@@ -1,5 +1,5 @@
 # PyAdminer
-Python based database view like adminer on flask.
+PyAdminer is a Python based database query interface. you can manage your database and perform all the operations like read write delete and update with a user friendly interface. It's a open source project, so anyone can contribute to this with feature updates, security updates and suggestions for improvement. This project can be setup either with venv or docker. easy setup instructions for both are added in the readme.
 
 <h4>Setting Up project</h4>
 To setup project on your system, please follow these steps:
