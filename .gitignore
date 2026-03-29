@@ -10,3 +10,6 @@ __pycache__/
 dist/
 build/
 instance/
+
+# Marketing / landing site for private deploy (e.g. py-adminer.erevolutionsindia.com)
+pyadminer-web/
