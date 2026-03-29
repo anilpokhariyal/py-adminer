@@ -46,10 +46,11 @@
                 <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('main.export_database_sql', database=selected_db) }}" title="All base tables as INSERTs (row cap per table)">Export database (SQL)</a>
                 <a class="btn btn-outline-secondary btn-sm {% if diagram_panel %}active font-weight-bold border-dark{% endif %}" href="?database={{ selected_db }}&amp;diagram=1">Diagram</a>
                 <a class="btn btn-outline-secondary btn-sm {% if advanced_panel %}active font-weight-bold border-dark{% endif %}" href="?database={{ selected_db }}&amp;advanced=1">Advanced</a>
-                {% if advanced_panel or diagram_panel %}
+                <a class="btn btn-outline-secondary btn-sm {% if dashboard_panel %}active font-weight-bold border-dark{% endif %}" href="?database={{ selected_db }}&amp;dashboard=1">Dashboard</a>
+                {% if advanced_panel or diagram_panel or dashboard_panel %}
                 <a class="btn btn-outline-secondary btn-sm" href="?database={{ selected_db }}">Tables</a>
                 {% endif %}
-                <a class="btn btn-outline-secondary btn-sm" href="?database={{ selected_db }}&amp;sql_panel=1{% if advanced_panel %}&amp;advanced=1{% elif diagram_panel %}&amp;diagram=1{% endif %}">SQL command</a>
+                <a class="btn btn-outline-secondary btn-sm" href="?database={{ selected_db }}&amp;sql_panel=1{% if advanced_panel %}&amp;advanced=1{% elif diagram_panel %}&amp;diagram=1{% elif dashboard_panel %}&amp;dashboard=1{% endif %}">SQL command</a>
             </div>
         {% endif %}
         {% if not login %}
@@ -63,6 +64,8 @@
             {% include 'database_diagram.html' %}
             {% elif advanced_panel %}
             {% include 'database_advanced.html' %}
+            {% elif dashboard_panel %}
+            {% include 'database_dashboard.html' %}
             {% else %}
             {% include 'list_tables.html' %}
             {% endif %}
@@ -71,6 +74,8 @@
             <p class="mb-2"><a href="?database={{ selected_db }}&amp;diagram=1">&larr; Back to diagram</a></p>
             {% elif advanced_panel %}
             <p class="mb-2"><a href="?database={{ selected_db }}&amp;advanced=1">&larr; Back to Advanced</a></p>
+            {% elif dashboard_panel %}
+            <p class="mb-2"><a href="?database={{ selected_db }}&amp;dashboard=1">&larr; Back to dashboard</a></p>
             {% endif %}
             <div class="py-panel mb-3">
                 <h2 class="py-section-title">SQL command</h2>
@@ -85,6 +90,9 @@
                 {% endif %}
                 {% if diagram_panel %}
                 <input type="hidden" name="diagram" value="1">
+                {% endif %}
+                {% if dashboard_panel %}
+                <input type="hidden" name="dashboard" value="1">
                 {% endif %}
                 {% if query_output %}
                 <div class="py-table-wrap mb-3">

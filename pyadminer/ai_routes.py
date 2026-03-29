@@ -30,6 +30,7 @@ from pyadminer.ai_storage import (
     save_ai_settings,
 )
 from pyadminer.audit import audit_event
+from pyadminer.db_dashboard import build_database_dashboard, compact_for_ai_payload
 from pyadminer.extensions import limiter
 from pyadminer.validators import validate_mysql_identifier
 
@@ -190,3 +191,98 @@ def register_ai_routes(bp):
         )
 
         return jsonify({"sql": sql, "explanation": explanation})
+
+    @bp.route("/py_adminer/api/ai/table_advice", methods=["POST"])
+    @limiter.limit("10 per minute", methods=["POST"], exempt_when=_limiter_disabled)
+    def api_ai_table_advice():
+        conn = _require_mysql_session()
+        if not conn:
+            return jsonify({"error": "Not connected"}), 401
+        if is_ai_globally_disabled(current_app):
+            return jsonify({"error": "AI is disabled on this server."}), 403
+        if not is_ai_assistant_available(current_app):
+            return jsonify({"error": "AI assistant is not enabled or API key is missing."}), 403
+
+        body = request.get_json(silent=True) or {}
+        try:
+            database = validate_mysql_identifier(str(body.get("database", "")))
+        except ValueError:
+            return jsonify({"error": "Invalid database name."}), 400
+
+        try:
+            rows = build_database_dashboard(conn, database)
+        except ValueError:
+            return jsonify({"error": "Invalid database context."}), 400
+        except Exception as exc:
+            current_app.logger.warning("ai table_advice dashboard build failed: %s", exc)
+            return jsonify({"error": "Could not load table health data."}), 500
+
+        compact = compact_for_ai_payload(rows)
+        if not compact:
+            return jsonify({"advice": {}, "note": "No base tables to analyze."})
+
+        payload_json = json.dumps(compact, ensure_ascii=False)
+        if len(payload_json) > 60000:
+            return jsonify({"error": "Schema too large for AI in one request."}), 400
+
+        settings = load_ai_settings(current_app)
+        api_key = (settings.get("api_key") or "").strip()
+        provider = (settings.get("provider") or "openai").strip().lower()
+        model = (settings.get("model") or "").strip() or "gpt-4o-mini"
+        base_url = (settings.get("base_url") or "").strip()
+        anthropic_version = (settings.get("anthropic_version") or "2023-06-01").strip()
+
+        if provider == "openai" and not base_url:
+            base_url = "https://api.openai.com/v1"
+        if provider == "anthropic" and not base_url:
+            base_url = "https://api.anthropic.com"
+
+        system = (
+            "You are a MySQL/MariaDB performance advisor. You receive JSON: a list of base "
+            "tables with engine, approximate row counts, byte sizes, has_primary_key, and "
+            "standard_hints (already shown to the user).\n"
+            "Reply with ONLY valid JSON (no markdown fences) in this exact shape:\n"
+            '{"advice": {"TABLE_NAME": ["short actionable tip", ...], ...}}\n'
+            "Rules:\n"
+            "- Add 1–4 tips per table only where they add value; omit a table key if you have "
+            "nothing new.\n"
+            "- Do NOT repeat or lightly rephrase standard_hints; suggest complementary ideas "
+            "(workload patterns, partitioning, archiving, statistics, buffer pool, EXPLAIN "
+            "review, etc.).\n"
+            "- Tips must be safe, high-level guidance (no destructive operations).\n"
+        )
+        user_msg = f"Database `{database}` compact metrics:\n{payload_json}"
+
+        try:
+            raw = complete_chat(
+                provider=provider,
+                base_url=base_url,
+                api_key=api_key,
+                model=model,
+                system=system,
+                user=user_msg,
+                anthropic_version=anthropic_version,
+            )
+            obj = extract_json_object_from_llm(raw)
+        except (json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
+            current_app.logger.info("ai table_advice parse error: %s", exc)
+            return jsonify({"error": "Could not parse model response as JSON."}), 502
+        except RuntimeError as exc:
+            current_app.logger.warning("ai table_advice api error: %s", exc)
+            return jsonify({"error": str(exc)}), 502
+
+        advice_raw = obj.get("advice")
+        if not isinstance(advice_raw, dict):
+            return jsonify({"error": "Model response missing advice object."}), 502
+
+        cleaned: dict[str, list[str]] = {}
+        for k, v in advice_raw.items():
+            if not isinstance(v, list):
+                continue
+            tips = [str(t).strip() for t in v if str(t).strip()]
+            if tips:
+                cleaned[str(k)] = tips[:6]
+
+        audit_event("ai_table_advice", database, query=payload_json[:2000])
+
+        return jsonify({"advice": cleaned})

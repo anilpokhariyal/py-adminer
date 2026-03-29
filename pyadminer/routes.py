@@ -36,6 +36,7 @@ from pyadminer.db import (
     mysql_connection,
     run_sql,
 )
+from pyadminer.db_dashboard import build_database_dashboard, compact_for_ai_payload
 from pyadminer.diagram import fetch_mermaid_diagram
 from pyadminer.extensions import limiter
 from pyadminer.validators import (
@@ -810,8 +811,12 @@ def py_admin():
     advanced_panel = bool(str(_adv).strip())
     _dia = request.values.get("diagram") or request.args.get("diagram") or ""
     diagram_panel = bool(str(_dia).strip())
+    _dash = request.values.get("dashboard") or request.args.get("dashboard") or ""
+    dashboard_panel = bool(str(_dash).strip())
     mermaid_diagram = ""
     diagram_warnings: list[str] = []
+    dashboard_rows: list = []
+    dashboard_ai_payload: list = []
     db_views: list = []
     db_routines: list = []
     db_triggers: list = []
@@ -915,7 +920,7 @@ def py_admin():
             )
             tables = fetch_all(tcur) if tcur else []
 
-            if advanced_panel and not sql_panel and not diagram_panel:
+            if advanced_panel and not sql_panel and not diagram_panel and not dashboard_panel:
                 run_sql(connection, "USE information_schema;")
                 vcur, _ = run_sql(
                     connection,
@@ -947,7 +952,7 @@ def py_admin():
                 )
                 db_events = fetch_all(ecur) if ecur else []
 
-            if diagram_panel and not sql_panel:
+            if diagram_panel and not sql_panel and not dashboard_panel:
                 try:
                     mermaid_diagram, diagram_warnings = fetch_mermaid_diagram(
                         connection, selected_db
@@ -955,6 +960,14 @@ def py_admin():
                 except ValueError:
                     mermaid_diagram = ""
                     diagram_warnings = ["Invalid database name for diagram."]
+
+            if dashboard_panel and not sql_panel and not advanced_panel and not diagram_panel:
+                try:
+                    dashboard_rows = build_database_dashboard(connection, selected_db)
+                    dashboard_ai_payload = compact_for_ai_payload(dashboard_rows)
+                except ValueError:
+                    dashboard_rows = []
+                    dashboard_ai_payload = []
 
         if selected_db and arg_table and (not action or action == "alter" or viz_mode):
             table_name = arg_table
@@ -1133,6 +1146,17 @@ def py_admin():
     ):
         ai_assistant_available = True
 
+    ai_dashboard_available = False
+    if (
+        login
+        and session.get("system") == "mysql"
+        and selected_db
+        and dashboard_panel
+        and not sql_panel
+        and is_ai_assistant_available(current_app)
+    ):
+        ai_dashboard_available = True
+
     return render_template(
         "py_adminer.html",
         py_admin_url="/py_adminer",
@@ -1164,6 +1188,9 @@ def py_admin():
         query_output=query_output,
         advanced_panel=advanced_panel,
         diagram_panel=diagram_panel,
+        dashboard_panel=dashboard_panel,
+        dashboard_rows=dashboard_rows,
+        dashboard_ai_payload=dashboard_ai_payload,
         mermaid_diagram=mermaid_diagram,
         diagram_warnings=diagram_warnings,
         db_views=db_views,
@@ -1182,6 +1209,7 @@ def py_admin():
         json_column_names=json_column_names,
         wide_text_column_names=wide_text_column_names,
         ai_assistant_available=ai_assistant_available,
+        ai_dashboard_available=ai_dashboard_available,
     )
 
 
