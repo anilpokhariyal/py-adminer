@@ -1,10 +1,9 @@
 name: CI
 
+# Run on every push and on every pull request (any branch).
 on:
   push:
-    branches: [master, main]
   pull_request:
-    branches: [master, main]
 
 jobs:
   test:
