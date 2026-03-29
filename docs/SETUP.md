@@ -82,6 +82,21 @@ Best when you want the UI and a database without installing MySQL on your machin
 
 ---
 
+## Optional: Marketing site in Docker (`pyadminer-web/`)
+
+If you keep the static landing site under `pyadminer-web/` at the repo root, serve it in a **separate** nginx container (independent of the app stack):
+
+```bash
+make docker-web
+```
+
+- **URL:** [http://127.0.0.1:8765](http://127.0.0.1:8765)
+- **Stop:** `make docker-web-down`
+
+This uses `docker/docker-compose.web.yml` and bind-mounts `pyadminer-web/` read-only. The folder may be gitignored; it must exist on your machine for the mount to work.
+
+---
+
 ## Option B: Virtual environment (app on host, MySQL elsewhere)
 
 Use this when you already run MySQL (local install, cloud, or another container) and want to hack on PyAdminer with `pip` and your editor.

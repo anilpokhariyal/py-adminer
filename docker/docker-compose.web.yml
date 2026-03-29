@@ -1,0 +1,21 @@
+# Marketing / landing site for PyAdminer (pyadminer-web/).
+# Folder is gitignored in the main repo; mount it from the host.
+#
+# From repo root:
+#   make docker-web
+#   docker compose -f docker/docker-compose.web.yml up -d
+#
+# Open http://127.0.0.1:8765
+
+name: pyadminer-web-site
+
+services:
+  pyadminer-web:
+    image: nginx:1.27-alpine
+    container_name: pyadminer-web
+    ports:
+      - "8765:80"
+    volumes:
+      - ../pyadminer-web:/usr/share/nginx/html:ro
+      - ./nginx-pyadminer-web.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
