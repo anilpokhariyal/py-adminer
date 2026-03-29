@@ -95,6 +95,8 @@ make docker-web
 
 This uses `docker/docker-compose.web.yml` and bind-mounts `pyadminer-web/` read-only. The folder may be gitignored; it must exist on your machine for the mount to work.
 
+The static site includes `robots.txt` and `sitemap.xml` for SEO. After you point **py-adminer.erevolutionsindia.com** at this host (HTTPS recommended), submit the sitemap in [Google Search Console](https://search.google.com/search-console) (`https://py-adminer.erevolutionsindia.com/sitemap.xml`).
+
 ---
 
 ## Option B: Virtual environment (app on host, MySQL elsewhere)
