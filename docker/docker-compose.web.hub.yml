@@ -1,0 +1,16 @@
+# Run the marketing site from Docker Hub (no local pyadminer-web mount).
+#
+#   docker compose -f docker/docker-compose.web.hub.yml pull
+#   docker compose -f docker/docker-compose.web.hub.yml up -d
+#
+# Default image: anilpokhariya/pyadminer-web:latest — override with IMAGE=... if you retag.
+
+name: pyadminer-web-site
+
+services:
+  pyadminer-web:
+    image: ${IMAGE:-anilpokhariya/pyadminer-web:latest}
+    container_name: pyadminer-web
+    ports:
+      - "8765:80"
+    restart: unless-stopped

@@ -2,7 +2,11 @@
 DOCKER_COMPOSE := docker compose -f docker/docker-compose.local.yml
 DOCKER_COMPOSE_WEB := docker compose -f docker/docker-compose.web.yml
 
-.PHONY: docker-local docker-local-down docker-local-logs docker-local-restart docker-web docker-web-down
+# Docker Hub image for the static marketing site (requires pyadminer-web/ on disk)
+DOCKERHUB_USER ?= anilpokhariya
+WEB_IMAGE := $(DOCKERHUB_USER)/pyadminer-web
+
+.PHONY: docker-local docker-local-down docker-local-logs docker-local-restart docker-web docker-web-down docker-web-image docker-web-push
 
 # Rebuild images if needed and start (run after Dockerfile or requirements.txt changes)
 docker-local:
@@ -24,3 +28,11 @@ docker-web:
 
 docker-web-down:
 	$(DOCKER_COMPOSE_WEB) down
+
+# Build image with site files baked in (from repo root; pyadminer-web/ required)
+docker-web-image:
+	docker build -f docker/Dockerfile.pyadminer-web -t $(WEB_IMAGE):latest .
+
+# Push to Docker Hub (run: docker login) — override user: make docker-web-push DOCKERHUB_USER=you
+docker-web-push: docker-web-image
+	docker push $(WEB_IMAGE):latest

@@ -97,6 +97,23 @@ This uses `docker/docker-compose.web.yml` and bind-mounts `pyadminer-web/` read-
 
 The static site includes `robots.txt` and `sitemap.xml` for SEO. After you point **py-adminer.erevolutionsindia.com** at this host (HTTPS recommended), submit the sitemap in [Google Search Console](https://search.google.com/search-console) (`https://py-adminer.erevolutionsindia.com/sitemap.xml`).
 
+### Publish the marketing site image to Docker Hub
+
+With `pyadminer-web/` present locally, build and push (after `docker login`):
+
+```bash
+make docker-web-push
+```
+
+Override the registry user if needed: `make docker-web-push DOCKERHUB_USER=youruser`.
+
+This uses `docker/Dockerfile.pyadminer-web` and tags **`anilpokhariya/pyadminer-web:latest`** by default. Run the published image anywhere:
+
+```bash
+docker compose -f docker/docker-compose.web.hub.yml pull
+docker compose -f docker/docker-compose.web.hub.yml up -d
+```
+
 ---
 
 ## Option B: Virtual environment (app on host, MySQL elsewhere)
