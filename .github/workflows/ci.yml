@@ -1,9 +1,8 @@
 name: CI
 
-# Run on every push and on every pull request (any branch).
-on:
-  push:
-  pull_request:
+# List form avoids YAML `push:` / `pull_request:` keys with implicit null (no triggers).
+# workflow_dispatch: run manually from Actions → CI → Run workflow.
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test:
