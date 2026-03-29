@@ -107,7 +107,9 @@ make docker-web-push
 
 Override the registry user if needed: `make docker-web-push DOCKERHUB_USER=youruser`.
 
-This uses `docker/Dockerfile.pyadminer-web` and tags **`anilpokhariya/pyadminer-web:latest`** by default. Run the published image anywhere:
+This uses `docker/Dockerfile.pyadminer-web` and tags **`anilpokhariya/pyadminer-web:latest`** by default. The push target builds **both** `linux/amd64` and `linux/arm64` so cloud/Linux x86 hosts can pull the image (a single-arch arm64-only push fails on `docker pull --platform linux/amd64`).
+
+Run the published image anywhere:
 
 ```bash
 docker compose -f docker/docker-compose.web.hub.yml pull

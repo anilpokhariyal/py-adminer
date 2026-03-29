@@ -29,10 +29,18 @@ docker-web:
 docker-web-down:
 	$(DOCKER_COMPOSE_WEB) down
 
-# Build image with site files baked in (from repo root; pyadminer-web/ required)
+# Build image for your machine only (quick local test / load into Docker)
 docker-web-image:
 	docker build -f docker/Dockerfile.pyadminer-web -t $(WEB_IMAGE):latest .
 
-# Push to Docker Hub (run: docker login) — override user: make docker-web-push DOCKERHUB_USER=you
-docker-web-push: docker-web-image
-	docker push $(WEB_IMAGE):latest
+# Push multi-arch manifest to Docker Hub: linux/amd64 + linux/arm64 (Apple Silicon builds
+# arm64-only by default, which breaks `docker pull --platform linux/amd64` on x86 servers).
+# Requires: docker login, and buildx (Docker Desktop / docker-buildx-plugin).
+# One-time: docker buildx create --name pyadminer-web-builder --driver docker-container --bootstrap
+docker-web-push:
+	-docker buildx create --name pyadminer-web-builder --driver docker-container --bootstrap 2>/dev/null
+	docker buildx build --builder pyadminer-web-builder \
+		--platform linux/amd64,linux/arm64 \
+		-f docker/Dockerfile.pyadminer-web \
+		-t $(WEB_IMAGE):latest \
+		--push .
