@@ -1,31 +1,92 @@
-<table class="table table-bordered mt-4">
-    <thead>
-        <tr>
-            <th>Column</th>
-            <th>Type</th>
-            <th>Key</th>
-            <th>Comment</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for structure in table_structure %}
-        <tr>
-            <td>{{structure['COLUMN_NAME']}}</td>
-            <td>
-                {{structure['COLUMN_TYPE']}}
-                {% if structure['IS_NULLABLE']=='YES' %}
-                    NULL
-                {% endif %}
-                {% if structure['COLUMN_DEFAULT'] %}
-                    [{{structure['COLUMN_DEFAULT']}}]
-                {% endif %}
+<div class="py-panel">
+    <h2 class="py-section-title mb-3">Columns</h2>
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Type</th>
+                    <th>Key</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for structure in table_structure %}
+                <tr>
+                    <td>{{ structure['COLUMN_NAME'] }}</td>
+                    <td>
+                        {{ structure['COLUMN_TYPE'] }}
+                        {% if structure['IS_NULLABLE'] == 'YES' %}
+                            NULL
+                        {% endif %}
+                        {% if structure['COLUMN_DEFAULT'] %}
+                            [{{ structure['COLUMN_DEFAULT'] }}]
+                        {% endif %}
+                        {{ structure['EXTRA'] }}
+                    </td>
+                    <td>{{ structure['COLUMN_KEY'] }}</td>
+                    <td>{{ structure['COLUMN_COMMENT'] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-                {{structure['EXTRA']}}
+{% if table_indexes %}
+<div class="py-panel">
+    <h3 class="py-section-title mb-3">Indexes</h3>
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Unique</th>
+                    <th>Column</th>
+                    <th>Seq</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for idx in table_indexes %}
+                <tr>
+                    <td>{{ idx['INDEX_NAME'] }}</td>
+                    <td>{{ 'No' if idx['NON_UNIQUE'] else 'Yes' }}</td>
+                    <td>{{ idx['COLUMN_NAME'] }}</td>
+                    <td>{{ idx['SEQ_IN_INDEX'] }}</td>
+                    <td>{{ idx['INDEX_TYPE'] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 
-            </td>
-            <td>{{structure['COLUMN_KEY']}}</td>
-            <td>{{structure['COLUMN_COMMENT']}}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+{% if table_foreign_keys %}
+<div class="py-panel">
+    <h3 class="py-section-title mb-3">Foreign keys</h3>
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Constraint</th>
+                    <th>Column</th>
+                    <th>References</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for fk in table_foreign_keys %}
+                <tr>
+                    <td>{{ fk['CONSTRAINT_NAME'] }}</td>
+                    <td>{{ fk['COLUMN_NAME'] }}</td>
+                    <td>
+                        {{ fk['REFERENCED_TABLE_SCHEMA'] }}.{{ fk['REFERENCED_TABLE_NAME'] }} ({{ fk['REFERENCED_COLUMN_NAME'] }})
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}

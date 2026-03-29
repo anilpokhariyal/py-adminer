@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PyAdminer : a python database manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>PyAdminer</title>
     <link rel="stylesheet" href="/static/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <script src="/static/js/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
     <script src="/static/js/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
@@ -13,12 +15,22 @@
     <link rel="stylesheet" type="text/css" href="/static/css/font-awesome.min.css">
     <script type="text/javascript" charset="utf8" src="/static/js/jquery.dataTables.js"></script>
 </head>
-<body>
-<div class="container-fluid">
+<body class="py-app">
+<div class="container-fluid px-0">
     {% include 'header.html' %}
-    <div class="row">
+    <div class="d-flex flex-column flex-md-row align-items-stretch py-layout w-100">
         {% include 'sidebar.html' %}
-        <div class="col-md-10 mt-4 table-ground">
+        <main class="py-main flex-grow-1">
+        {% if error %}
+        <div class="alert alert-danger mb-3" role="alert">
+            <strong class="d-block mb-1">Something went wrong</strong>
+            <pre class="mb-0 small text-break bg-transparent border-0 p-0" style="white-space: pre-wrap; color: inherit;">{{ error }}</pre>
+            {% if not login and session.get('system') %}
+            <hr class="my-2">
+            <a class="alert-link font-weight-bold" href="{{ url_for('main.logout') }}">Clear session and try again</a>
+            {% endif %}
+        </div>
+        {% endif %}
         {% if selected_table %}
             {% include 'table_options.html' %}
         {% endif %}
@@ -27,48 +39,62 @@
             {% include 'database_options.html' %}
         {% endif %}
 
-        {% if sql_panel %}
-            <h5 class="col-md-12 bg-light p-4">SQL Query: <span class="text-primary">{{sql_query or ''}}</span></h5>
-        {% endif %}
-
-        {% if error %}
-            <div class="text-danger">{{ error }}</div>
-        {% endif %}
-        {% if tables and not selected_table and not sql_panel %}
-            <div class="row mt-4 mb-4">
-                <div class="col-md-2">
-                    <a href="?create=alter_database&database={{selected_db}}">
-                        Alter Database
-                    </a>
-                </div>
-                <div class="col-md-1">
-                    <a href="?create=table&database={{selected_db}}">
-                        New Table
-                    </a>
-                </div>
+        {% if selected_db and not selected_table and not sql_panel and not create and action != 'alter' %}
+            <div class="py-toolbar">
+                <a class="btn btn-outline-secondary btn-sm" href="?create=alter_database&database={{ selected_db }}">Alter database</a>
+                <a class="btn btn-primary btn-sm" href="?create=table&database={{ selected_db }}">New table</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('main.export_database_sql', database=selected_db) }}" title="All base tables as INSERTs (row cap per table)">Export database (SQL)</a>
+                <a class="btn btn-outline-secondary btn-sm {% if diagram_panel %}active font-weight-bold border-dark{% endif %}" href="?database={{ selected_db }}&amp;diagram=1">Diagram</a>
+                <a class="btn btn-outline-secondary btn-sm {% if advanced_panel %}active font-weight-bold border-dark{% endif %}" href="?database={{ selected_db }}&amp;advanced=1">Advanced</a>
+                {% if advanced_panel or diagram_panel %}
+                <a class="btn btn-outline-secondary btn-sm" href="?database={{ selected_db }}">Tables</a>
+                {% endif %}
+                <a class="btn btn-outline-secondary btn-sm" href="?database={{ selected_db }}&amp;sql_panel=1{% if advanced_panel %}&amp;advanced=1{% elif diagram_panel %}&amp;diagram=1{% endif %}">SQL command</a>
             </div>
         {% endif %}
-        <!-- mysql data and structure-->
         {% if not login %}
             {% include 'login_mysql.html' %}
         {% elif create and (create == 'database' or create == 'alter_database') %}
             {% include 'create_database.html' %}
         {% elif create and create == 'table' or action == 'alter' %}
             {% include 'create_table.html' %}
-        {% elif tables and not selected_table and not sql_panel %}
+        {% elif selected_db and not selected_table and not sql_panel and not create and action != 'alter' %}
+            {% if diagram_panel %}
+            {% include 'database_diagram.html' %}
+            {% elif advanced_panel %}
+            {% include 'database_advanced.html' %}
+            {% else %}
             {% include 'list_tables.html' %}
+            {% endif %}
         {% elif sql_panel %}
-            <form method="POST">
-                <input type="hidden" name="database" value="{{selected_db}}">
+            {% if diagram_panel %}
+            <p class="mb-2"><a href="?database={{ selected_db }}&amp;diagram=1">&larr; Back to diagram</a></p>
+            {% elif advanced_panel %}
+            <p class="mb-2"><a href="?database={{ selected_db }}&amp;advanced=1">&larr; Back to Advanced</a></p>
+            {% endif %}
+            <div class="py-panel mb-3">
+                <h2 class="py-section-title">SQL command</h2>
+                <p class="text-muted small mb-0">Run on database <strong>{{ selected_db }}</strong></p>
+            </div>
+            <form method="POST" class="py-panel">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="database" value="{{ selected_db }}">
+                <input type="hidden" name="sql_panel" value="1">
+                {% if advanced_panel %}
+                <input type="hidden" name="advanced" value="1">
+                {% endif %}
+                {% if diagram_panel %}
+                <input type="hidden" name="diagram" value="1">
+                {% endif %}
                 {% if query_output %}
-                <div class="col-md-12">
-                    <table class="table table-bordered table-hover datatable">
+                <div class="py-table-wrap mb-3">
+                    <table class="table table-sm table-striped table-hover datatable mb-0">
                         {% set table_data = query_output.fetchall() %}
                         {% if table_data %}
                         <thead>
                             <tr>
                                 {% for k in table_data[0].keys() %}
-                                <th>{{k}}</th>
+                                <th>{{ k }}</th>
                                 {% endfor %}
                             </tr>
                         </thead>
@@ -76,7 +102,7 @@
                          {% for row in table_data %}
                             <tr>
                                 {% for v in row.values() %}
-                                <td>{{v}}</td>
+                                <td>{{ v }}</td>
                                 {% endfor %}
                             </tr>
                         {% endfor %}
@@ -84,30 +110,100 @@
                         {% else %}
                         <tbody>
                         <tr>
-                            <th>No Data Found.</th>
+                            <td class="text-muted">No rows returned.</td>
                         </tr>
                         </tbody>
                         {% endif %}
-
                     </table>
                 </div>
                 {% endif %}
-            <div class="col-md-12 mt-4">
-                <textarea name="sql_query" class="col-md-12 border-dark" rows="15">{{sql_query or ''}}</textarea>
+            {% if ai_assistant_available %}
+            <div class="card border-secondary mb-3">
+                <div class="card-body py-3">
+                    <h3 class="h6 card-title">Natural language</h3>
+                    <p class="card-text small text-muted mb-2">
+                        Describe what you want as a read-only query. The model sees this database’s table/column list (truncated if huge).
+                        Always review the generated SQL before running.
+                    </p>
+                    <div class="form-group mb-2">
+                        <label for="py_ai_question" class="small text-muted">Question</label>
+                        <textarea id="py_ai_question" class="form-control form-control-sm" rows="3" spellcheck="true"
+                            placeholder="Example: Show the 10 most recent orders with customer name."></textarea>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="py_ai_generate">Generate SQL</button>
+                    <span id="py_ai_status" class="small text-muted ml-2"></span>
+                    <p id="py_ai_explain" class="small text-muted mt-2 mb-0 d-none"></p>
+                </div>
             </div>
-            <div class="col-md-12">
-                <button class="btn btn-secondary">execute</button>
+            <script type="text/javascript">
+            (function () {
+              var db = {{ selected_db|tojson }};
+              var tbl = {{ (selected_table or '')|tojson }};
+              var csrf = document.querySelector('meta[name="csrf-token"]');
+              var token = csrf ? csrf.getAttribute('content') : '';
+              var btn = document.getElementById('py_ai_generate');
+              if (!btn) return;
+              btn.addEventListener('click', function () {
+                var q = (document.getElementById('py_ai_question') || {}).value || '';
+                var st = document.getElementById('py_ai_status');
+                var ex = document.getElementById('py_ai_explain');
+                var ta = document.getElementById('sql_query');
+                if (!q.trim()) {
+                  if (st) st.textContent = 'Enter a question first.';
+                  return;
+                }
+                if (st) st.textContent = 'Calling model…';
+                if (ex) { ex.classList.add('d-none'); ex.textContent = ''; }
+                btn.disabled = true;
+                fetch('/py_adminer/api/ai/nl_to_sql', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': token
+                  },
+                  body: JSON.stringify({ database: db, question: q, table: tbl || null })
+                }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+                .then(function (o) {
+                  if (st) st.textContent = '';
+                  if (!o.ok) {
+                    if (st) st.textContent = o.j.error || 'Request failed.';
+                    return;
+                  }
+                  if (ta && o.j.sql) ta.value = o.j.sql;
+                  if (ex && o.j.explanation) {
+                    ex.textContent = o.j.explanation;
+                    ex.classList.remove('d-none');
+                  }
+                }).catch(function () {
+                  if (st) st.textContent = 'Network error.';
+                }).finally(function () { btn.disabled = false; });
+              });
+            })();
+            </script>
+            {% endif %}
+            <div class="form-group mb-2">
+                <label for="sql_query">Query</label>
+                <textarea id="sql_query" name="sql_query" class="form-control py-sql-editor" rows="14" spellcheck="false">{{ sql_query or '' }}</textarea>
             </div>
+            <button type="submit" class="btn btn-primary">Run query</button>
             </form>
         {% elif databases and not selected_db %}
             {% include 'list_databases.html' %}
+        {% elif selected_db and selected_table and viz_mode == 'visualize' %}
+            {% include 'table_viz.html' %}
+        {% elif selected_db and selected_table and viz_mode == 'impact' %}
+            {% include 'table_impact.html' %}
+        {% elif selected_db and selected_table and viz_mode == 'quality' %}
+            {% include 'table_quality.html' %}
+        {% elif selected_db and selected_table and viz_mode == 'diff' %}
+            {% include 'table_diff.html' %}
+        {% elif selected_db and selected_table and action == 'data' %}
+            {% include 'table_data.html' %}
         {% elif selected_db and selected_table and table_structure %}
             {% include 'table_structure.html' %}
-        {% elif selected_db and selected_table and table_data %}
-            {% include 'table_data.html' %}
         {% endif %}
 
-        </div>
+        </main>
     </div>
 </div>
 <script src="/static/js/actions.js"></script>

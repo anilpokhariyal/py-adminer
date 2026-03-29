@@ -1,24 +1,26 @@
-<div class="row bg-warning">
-    <div class="col-md-2"><h3>PyAdminer<sub>0.1</sub></h3></div>
-    <!--options starts here-->
-    <div class="col-md-8">
-        {% if not login %}
-        <h3>Login</h3>
-        {% elif tables %}
-        {% if selected_table %}
-            <h3>Table : {{selected_table}}</h3>
-            <input type="hidden" id="selected_table_name" name="selected_table_name" value="{{selected_table}}">
-        {% else %}
-            <h3>Tables</h3>
-        {% endif %}
-        {% elif databases %}
-        <h3>Databases</h3>
-        {% endif %}
+<div class="py-header d-flex flex-wrap justify-content-between align-items-center">
+    <div class="d-flex align-items-center flex-wrap" style="gap: 1rem;">
+        <a href="{{ url_for('main.py_admin') }}" class="py-brand text-decoration-none">PyAdminer<sub>0.2</sub></a>
+        <div>
+            {% if not login %}
+            <p class="py-header-title mb-0">Sign in</p>
+            <span class="text-muted small">Connect to MySQL</span>
+            {% elif selected_db %}
+            {% if selected_table %}
+            <p class="py-header-title mb-0">{{ selected_table }}</p>
+            <span class="text-muted small">Table · {{ selected_db }}</span>
+            <input type="hidden" id="selected_table_name" name="selected_table_name" value="{{ selected_table }}">
+            {% else %}
+            <p class="py-header-title mb-0">{{ selected_db }}</p>
+            <span class="text-muted small">Database</span>
+            {% endif %}
+            {% elif databases %}
+            <p class="py-header-title mb-0">Databases</p>
+            <span class="text-muted small">Choose a database</span>
+            {% endif %}
+        </div>
     </div>
-    <div class="col-md-2 p-2">
-        {% if login %}
-        <strong><a href="/logout">Logout</a></strong>
-        {% endif %}
-    </div>
-    <!-- options ends here-->
+    {% if login %}
+    <a href="{{ url_for('main.logout') }}" class="btn btn-outline-secondary btn-sm">Log out</a>
+    {% endif %}
 </div>

@@ -1,8 +1,9 @@
 <div class="row mt-4 p-4">
-    <h4 class="col-md-12 bg-warning p-2">
+    <h4 class="col-md-12 py-2 px-3 mb-3 border rounded bg-light text-dark font-weight-bold">
         {% if create == 'table' %} Create {% elif create == 'alter_table' %} Alter {% endif %} Table
     </h4>
     <form name="create_table" method="POST" action="/create_table">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="col-md-12 mt-4">
             <label>Table Name: </label>
             <input type="hidden" name="database" value="{{selected_db}}">
@@ -15,12 +16,12 @@
                 {% endfor %}
             </select>
             <select name="table_collation">
-                <option value="('utf8','utf8_general_ci')">(collation)</option>
+                <option value="utf8|utf8_general_ci">(collation)</option>
                 {% for key, collations in db_collations.items() %}
                 <optgroup label="{{key}}">
                     {{key}}
                     {% for collation in collations %}
-                    <option value="{{key,collation['COLLATION_NAME']}}">{{collation['COLLATION_NAME']}}</option>
+                    <option value="{{ key }}|{{ collation['COLLATION_NAME'] }}">{{collation['COLLATION_NAME']}}</option>
                     {% endfor %}
                 </optgroup>
                 {% endfor %}
@@ -54,7 +55,7 @@
                                 <option {% if structure['COLUMN_TYPE']=='tinyint' %} selected {% endif %}>tinyint</option>
                                 <option {% if structure['COLUMN_TYPE']=='smallint' %} selected {% endif %}>smallint</option>
                                 <option {% if structure['COLUMN_TYPE']=='mediumint' %} selected {% endif %}>mediumint</option>
-                                <option {% if structure['COLUMN_TYPE']=='selected="">int' %} selected {% endif %} selected="">int</option>
+                                <option {% if structure['COLUMN_TYPE']=='int' %} selected {% endif %}>int</option>
                                 <option {% if structure['COLUMN_TYPE']=='bigint' %} selected {% endif %}>bigint</option>
                                 <option {% if structure['COLUMN_TYPE']=='decimal' %} selected {% endif %}>decimal</option>
                                 <option {% if structure['COLUMN_TYPE']=='float' %} selected {% endif %}>float</option>
@@ -111,12 +112,12 @@
                             <option>unsigned zerofill</option>
                         </select>
                         <select name="column_collation" class="options col_collation">
-                            <option value="('utf8_general_ci','utf8')">(collation)</option>
+                            <option value="utf8|utf8_general_ci">(collation)</option>
                             {% for key, collations in db_collations.items() %}
                             <optgroup label="{{key}}">
                                 {{key}}
                                 {% for collation in collations %}
-                                <option value="{{collation['COLLATION_NAME'],key}}">
+                                <option value="{{ key }}|{{ collation['COLLATION_NAME'] }}">
                                     {{collation['COLLATION_NAME']}}
                                 </option>
                                 {% endfor %}
@@ -214,12 +215,12 @@
                             <option>unsigned zerofill</option>
                         </select>
                         <select name="column_collation" class="options col_collation">
-                            <option value="('utf8_general_ci','utf8')">(collation)</option>
+                            <option value="utf8|utf8_general_ci">(collation)</option>
                             {% for key, collations in db_collations.items() %}
                             <optgroup label="{{key}}">
                                 {{key}}
                                 {% for collation in collations %}
-                                <option value="{{collation['COLLATION_NAME'],key}}">
+                                <option value="{{ key }}|{{ collation['COLLATION_NAME'] }}">
                                     {{collation['COLLATION_NAME']}}
                                 </option>
                                 {% endfor %}
@@ -291,8 +292,9 @@
         $(document).on('click','#save_table',function (){
             let database = $('input[name="database"]').val();
             let table_name = $('input[name="table_name"]').val();
-            let table_collation = $('select[name="table_collation"]').val();
-            table_collation = table_collation.replaceAll("'","").replace("(","").replace(")","").split(",");
+            let table_collation = $('select[name="table_collation"]').val().split("|");
+            let charset = table_collation[0] || "utf8";
+            let coll = table_collation[1] || "utf8_general_ci";
             let engine = $('select[name="engine"]').val();
             let columns = '';
             let column_length = '';
@@ -332,7 +334,7 @@
             });
             //removing last comma in columns string
             columns = columns.slice(0,-1);
-            let query = 'CREATE TABLE '+table_name+'('+columns+') CHARACTER SET '+table_collation[0]+' COLLATE '+table_collation[1]+' ENGINE = '+engine+';';
+            let query = 'CREATE TABLE `'+table_name+'`('+columns+') CHARACTER SET '+charset+' COLLATE '+coll+' ENGINE = '+engine+';';
             $('#create_table_query').val(query);
             $(this).closest('form').submit();
         });

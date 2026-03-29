@@ -1,0 +1,73 @@
+<div class="py-panel mb-3">
+    <h2 class="py-section-title">Diff: {{ selected_table }}</h2>
+    <p class="text-muted small mb-0">Compare this table with another in the same database (columns and row counts; row-level <code>EXCEPT</code> when column lists match).</p>
+</div>
+
+<form method="get" class="py-panel mb-4">
+    <input type="hidden" name="database" value="{{ selected_db }}">
+    <input type="hidden" name="table" value="{{ selected_table }}">
+    <input type="hidden" name="viz" value="diff">
+    <div class="form-row align-items-end">
+        <div class="col-md-5 mb-2">
+            <label class="small text-muted mb-0" for="diff_table">Compare with</label>
+            <select name="diff_table" id="diff_table" class="form-control form-control-sm">
+                <option value="">— Select table —</option>
+                {% for t in tables %}
+                {% if t['TABLE_NAME'] != selected_table %}
+                <option value="{{ t['TABLE_NAME'] }}" {% if viz_diff_table == t['TABLE_NAME'] %}selected{% endif %}>{{ t['TABLE_NAME'] }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 mb-2">
+            <button type="submit" class="btn btn-sm btn-primary">Compare</button>
+        </div>
+    </div>
+</form>
+
+{% if viz_diff %}
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Summary</h3>
+    <ul class="small mb-2">
+        <li><strong>{{ viz_diff.table_a }}</strong> rows: {{ viz_diff.row_count_a if viz_diff.row_count_a is not none else '?' }}</li>
+        <li><strong>{{ viz_diff.table_b }}</strong> rows: {{ viz_diff.row_count_b if viz_diff.row_count_b is not none else '?' }}</li>
+    </ul>
+    {% if viz_diff.errors %}
+    <p class="small text-danger mb-2">Errors: {{ viz_diff.errors | join(', ') }}</p>
+    {% endif %}
+    {% if viz_diff.except_note %}
+    <p class="small text-muted mb-2">{{ viz_diff.except_note }}</p>
+    {% endif %}
+    {% if viz_diff.except_a_not_b is not none %}
+    <p class="small mb-0">Rows in <code>{{ viz_diff.table_a }}</code> not in <code>{{ viz_diff.table_b }}</code> (EXCEPT): <strong>{{ viz_diff.except_a_not_b }}</strong></p>
+    <p class="small mb-0">Rows in <code>{{ viz_diff.table_b }}</code> not in <code>{{ viz_diff.table_a }}</code> (EXCEPT): <strong>{{ viz_diff.except_b_not_a }}</strong></p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Columns only in {{ viz_diff.table_a }}</h3>
+    {% if viz_diff.columns_only_a|length %}
+    <pre class="small bg-light border rounded p-2 mb-0">{{ viz_diff.columns_only_a | join(', ') }}</pre>
+    {% else %}
+    <p class="text-muted small mb-0">None</p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Columns only in {{ viz_diff.table_b }}</h3>
+    {% if viz_diff.columns_only_b|length %}
+    <pre class="small bg-light border rounded p-2 mb-0">{{ viz_diff.columns_only_b | join(', ') }}</pre>
+    {% else %}
+    <p class="text-muted small mb-0">None</p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Shared columns</h3>
+    <pre class="small bg-light border rounded p-2 mb-0">{{ viz_diff.shared_columns | join(', ') }}</pre>
+</div>
+{% elif viz_diff_table %}
+<p class="text-muted small">Could not load diff summary.</p>
+{% else %}
+<p class="text-muted small">Choose another table to compare.</p>
+{% endif %}

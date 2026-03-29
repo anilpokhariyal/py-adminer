@@ -1,9 +1,8 @@
-click==7.1.2
-Flask==1.1.2
-Flask-MySQLdb==0.2.0
-itsdangerous==1.1.0
-Jinja2==2.11.2
-MarkupSafe==1.1.1
-mysqlclient==1.4.6
-Werkzeug==1.0.1
-virtualenv==16.7.8
+# Install from pyproject (recommended): pip install -e ".[dev]"
+Flask>=3.0.0
+Flask-MySQLdb>=1.0.1
+Flask-WTF>=1.2.0
+Flask-Limiter>=3.5.0
+mysqlclient>=2.2.0
+Werkzeug>=3.0.0
+cryptography>=42.0.0

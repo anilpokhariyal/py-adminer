@@ -1,0 +1,170 @@
+<div class="py-panel mb-3">
+    <h2 class="py-section-title mb-2">Advanced database objects</h2>
+    <p class="text-muted small mb-0">
+        Manage views, routines, triggers, and scheduled events in <strong>{{ selected_db }}</strong>.
+        For <strong>stored procedures</strong>, <strong>functions</strong>, and complex <strong>CREATE TRIGGER</strong> / <strong>CREATE EVENT</strong> statements,
+        use <a href="?database={{ selected_db }}&sql_panel=1&amp;advanced=1">SQL command</a> and paste full <code>CREATE …</code> DDL (MySQL accepts the whole definition in one execution from this app).
+    </p>
+</div>
+
+<div class="py-panel mb-3">
+    <h3 class="h6 font-weight-bold mb-3">Create or replace view</h3>
+    <form method="POST" action="{{ url_for('main.create_database_view') }}" class="mb-0">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="database" value="{{ selected_db }}">
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label for="adv_view_name">View name</label>
+                <input type="text" class="form-control form-control-sm" id="adv_view_name" name="view_name" required pattern="[a-zA-Z0-9_]{1,64}" title="Letters, digits, underscore; max 64">
+            </div>
+        </div>
+        <div class="form-group mb-2">
+            <label for="adv_view_def">Definition (single SELECT or WITH … SELECT)</label>
+            <textarea id="adv_view_def" name="view_definition" class="form-control py-sql-editor" rows="6" required spellcheck="false" placeholder="SELECT id, name FROM my_table WHERE active = 1"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Create / replace view</button>
+    </form>
+</div>
+
+<div class="py-panel mb-3">
+    <h3 class="h6 font-weight-bold mb-2">Views</h3>
+    {% if db_views %}
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th class="text-right" style="width: 6rem;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for v in db_views %}
+                <tr>
+                    <td><code>{{ v.view_name }}</code></td>
+                    <td class="text-right">
+                        <form method="POST" action="{{ url_for('main.drop_database_view') }}" class="d-inline" onsubmit="return confirm('Drop view {{ v.view_name }}?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="database" value="{{ selected_db }}">
+                            <input type="hidden" name="view_name" value="{{ v.view_name }}">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm py-0">Drop</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">No views in this database.</p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-3">
+    <h3 class="h6 font-weight-bold mb-2">Stored procedures &amp; functions</h3>
+    {% if db_routines %}
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th class="text-right" style="width: 6rem;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in db_routines %}
+                <tr>
+                    <td><code>{{ r.ROUTINE_NAME }}</code></td>
+                    <td class="small">{{ r.ROUTINE_TYPE }}</td>
+                    <td class="text-right">
+                        <form method="POST" action="{{ url_for('main.drop_database_routine') }}" class="d-inline" onsubmit="return confirm('Drop {{ r.ROUTINE_TYPE }} {{ r.ROUTINE_NAME }}?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="database" value="{{ selected_db }}">
+                            <input type="hidden" name="routine_name" value="{{ r.ROUTINE_NAME }}">
+                            <input type="hidden" name="routine_type" value="{{ r.ROUTINE_TYPE }}">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm py-0">Drop</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">No procedures or functions. Create them via SQL command.</p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-3">
+    <h3 class="h6 font-weight-bold mb-2">Triggers</h3>
+    {% if db_triggers %}
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Trigger</th>
+                    <th>Event</th>
+                    <th>Table</th>
+                    <th class="text-right" style="width: 6rem;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for t in db_triggers %}
+                <tr>
+                    <td><code>{{ t.TRIGGER_NAME }}</code></td>
+                    <td class="small">{{ t.EVENT_MANIPULATION }}</td>
+                    <td class="small"><code>{{ t.EVENT_OBJECT_TABLE }}</code></td>
+                    <td class="text-right">
+                        <form method="POST" action="{{ url_for('main.drop_database_trigger') }}" class="d-inline" onsubmit="return confirm('Drop trigger {{ t.TRIGGER_NAME }}?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="database" value="{{ selected_db }}">
+                            <input type="hidden" name="trigger_name" value="{{ t.TRIGGER_NAME }}">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm py-0">Drop</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">No triggers. Create with SQL command (CREATE TRIGGER …).</p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-3">
+    <h3 class="h6 font-weight-bold mb-2">Events (scheduler)</h3>
+    {% if db_events %}
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Schedule</th>
+                    <th>Status</th>
+                    <th class="text-right" style="width: 6rem;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for e in db_events %}
+                <tr>
+                    <td><code>{{ e.EVENT_NAME }}</code></td>
+                    <td class="small">{{ e.INTERVAL_VALUE }} {{ e.INTERVAL_FIELD }}</td>
+                    <td class="small">{{ e.STATUS }}</td>
+                    <td class="text-right">
+                        <form method="POST" action="{{ url_for('main.drop_database_event') }}" class="d-inline" onsubmit="return confirm('Drop event {{ e.EVENT_NAME }}?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="database" value="{{ selected_db }}">
+                            <input type="hidden" name="event_name" value="{{ e.EVENT_NAME }}">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm py-0">Drop</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">No events (or scheduler not available). Create with SQL command (CREATE EVENT …).</p>
+    {% endif %}
+</div>

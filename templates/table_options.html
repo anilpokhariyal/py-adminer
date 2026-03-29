@@ -1,23 +1,24 @@
-<div class="row mt-4 mb-4">
-    <span class="col-md-1">
-        <a href="?database={{selected_db}}&table={{selected_table}}">
-            Structure
-        </a>
-    </span>
-    <span class="col-md-1">
-        <a href="?database={{selected_db}}&table={{selected_table}}&action=data">
-            Data
-        </a>
-    </span>
-    <span class="col-md-1">
-        <a href="?database={{selected_db}}&table={{selected_table}}&action=alter">
-            Alter
-        </a>
-    </span>
-    <span class="col-md-1">New Item</span>
-    <span class="col-md-1">
-         <a href="?create=table&database={{selected_db}}">
-            New Table
-         </a>
-    </span>
+{% set act = request.args.get('action') %}
+{% set viz = request.args.get('viz') %}
+<div class="py-table-tabs">
+    <a class="py-tab {% if not act and not viz %}active{% endif %}"
+       href="?database={{ selected_db }}&table={{ selected_table }}">Structure</a>
+    <a class="py-tab {% if act == 'data' %}active{% endif %}"
+       href="?database={{ selected_db }}&table={{ selected_table }}&action=data">Data</a>
+    <a class="py-tab {% if act == 'alter' %}active{% endif %}"
+       href="?database={{ selected_db }}&table={{ selected_table }}&action=alter">Alter</a>
+    <span class="py-table-tabs-divider px-1">|</span>
+    <a class="py-tab {% if viz == 'visualize' %}active{% endif %}"
+       href="?database={{ selected_db }}&table={{ selected_table }}&viz=visualize">Visualize</a>
+    <a class="py-tab {% if viz == 'impact' %}active{% endif %}"
+       href="?database={{ selected_db }}&table={{ selected_table }}&viz=impact">Impact</a>
+    <a class="py-tab {% if viz == 'quality' %}active{% endif %}"
+       href="?database={{ selected_db }}&table={{ selected_table }}&viz=quality">Quality</a>
+    <a class="py-tab {% if viz == 'diff' %}active{% endif %}"
+       href="?database={{ selected_db }}&table={{ selected_table }}&viz=diff">Diff</a>
+    <span class="py-table-tabs-divider px-1">|</span>
+    <a class="py-tab" href="?create=table&database={{ selected_db }}">+ New table</a>
+    <span class="py-table-tabs-divider px-1">|</span>
+    <a class="py-tab" href="{{ url_for('main.export_table', fmt='csv', database=selected_db, table=selected_table) }}">Export CSV</a>
+    <a class="py-tab" href="{{ url_for('main.export_table', fmt='sql', database=selected_db, table=selected_table) }}">Export SQL</a>
 </div>

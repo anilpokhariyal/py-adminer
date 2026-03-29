@@ -1,15 +1,18 @@
-<div class="row mt-4">
-    <strong class="ml-4">Mysql version : {{mysql_version['version']}} Using MySQLdb in Python</strong>
+<div class="py-panel mb-3">
+    <p class="mb-1 text-muted small">Server</p>
+    <p class="mb-0"><strong>MySQL {{ mysql_version['version'] }}</strong> <span class="text-muted">· Python MySQLdb</span></p>
 </div>
-<div class="row mt-4">
-    <span class="col-md-2">
-        <a href="?create=database">
-            Create Database
-        </a>
-    </span>
-    <span class="col-md-2">
-        <strong class="pointer" id="drop_databases_menu">
-            Drop Selected
-        </strong>
-    </span>
+<div class="py-toolbar py-toolbar-databases d-flex justify-content-between align-items-stretch flex-wrap">
+    <div class="d-flex flex-wrap align-items-center mb-2 mb-md-0" style="gap: 0.5rem;">
+        <a class="btn btn-primary btn-sm" href="?create=database">Create database</a>
+        <button type="submit" class="btn btn-outline-secondary btn-sm" id="export_databases_zip_btn" form="database_actions" formaction="{{ url_for('main.export_databases_zip') }}" disabled title="One .sql file per selected database (ZIP)">
+            Export selected (ZIP)
+        </button>
+    </div>
+    <div class="d-flex flex-wrap align-items-center py-drop-db-zone border rounded px-3 py-2 bg-white">
+        <span class="small text-muted mr-md-3 mb-2 mb-md-0" id="drop_db_selection_hint">No databases selected.</span>
+        <button type="button" class="btn btn-sm py-btn-drop-databases" id="drop_databases_menu" disabled aria-describedby="drop_db_selection_hint">
+            Drop selected databases
+        </button>
+    </div>
 </div>

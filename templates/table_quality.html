@@ -1,0 +1,59 @@
+<div class="py-panel mb-3">
+    <h2 class="py-section-title">Data quality: {{ selected_table }}</h2>
+    <p class="text-muted small mb-0">Primary-key duplicates and foreign-key orphan counts (child rows with no matching parent).</p>
+</div>
+
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Primary key duplicates</h3>
+    {% if viz_quality.pk_error %}
+    <p class="text-muted small mb-0">{{ viz_quality.pk_error }}</p>
+    {% elif viz_quality.pk_duplicates|length %}
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead>
+                <tr>
+                    {% for pk in primary_keys %}
+                    <th>{{ pk }}</th>
+                    {% endfor %}
+                    <th>Duplicate count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in viz_quality.pk_duplicates %}
+                <tr>
+                    {% for pk in primary_keys %}
+                    <td>{{ row[pk] }}</td>
+                    {% endfor %}
+                    <td><strong>{{ row['__dup_count'] }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">No duplicate primary keys in the first 20 conflicting groups.</p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Foreign key orphans</h3>
+    {% if not table_foreign_keys|length %}
+    <p class="text-muted small mb-0">No foreign keys defined on this table.</p>
+    {% else %}
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead><tr><th>Child column</th><th>Parent table.column</th><th>Orphan rows</th><th>Note</th></tr></thead>
+            <tbody>
+                {% for o in viz_quality.fk_orphans %}
+                <tr>
+                    <td>{{ o.column }}</td>
+                    <td>{{ o.parent }}.{{ o.parent_column }}</td>
+                    <td>{% if o.orphan_count is not none %}{{ o.orphan_count }}{% else %}—{% endif %}</td>
+                    <td class="small text-muted">{{ o.error or '' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>

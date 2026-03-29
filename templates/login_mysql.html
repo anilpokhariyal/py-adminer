@@ -1,34 +1,40 @@
-<form method="POST" name="login" action="{{py_admin_url}}">
-    <div class="col-md-4 mt-4">
+<div class="py-login-wrap">
+<div class="py-login-card">
+    <h2>Connect to MySQL</h2>
+    <p class="text-muted mb-0">Enter server credentials. In Docker Compose, use the DB service name as the server host.</p>
+    <hr class="my-4">
+    <form method="POST" name="login" action="{{ py_admin_url }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
-            <label class="col-md-3">System</label>
-            <select name="system" style="width: 45%">
-                <option value="mysql">MySql</option>
+            <label for="login-system">System</label>
+            <select id="login-system" name="system" class="form-control">
+                <option value="mysql">MySQL</option>
             </select>
         </div>
         <div class="form-group">
-            <label class="col-md-3">Server</label>
-            <input type="text"  placeholder="localhost" name="server" value="">
+            <label for="login-server">Server</label>
+            <input id="login-server" type="text" class="form-control" name="server"
+                   placeholder="e.g. mysql or localhost" value="{{ default_mysql_host }}" autocomplete="off">
         </div>
         <div class="form-group">
-            <label class="col-md-3">Username</label>
-            <input type="text" name="username" value="root">
+            <label for="login-user">Username</label>
+            <input id="login-user" type="text" class="form-control" name="username" value="root" autocomplete="username">
         </div>
         <div class="form-group">
-            <label class="col-md-3">Password</label>
-            <input type="password" name="password" value="">
+            <label for="login-pass">Password</label>
+            <input id="login-pass" type="password" class="form-control" name="password" value="" autocomplete="current-password">
         </div>
         <div class="form-group">
-            <label class="col-md-3">Database</label>
-            <input type="text" name="database" >
+            <label for="login-db">Database <span class="text-muted font-weight-normal">(optional)</span></label>
+            <input id="login-db" type="text" class="form-control" name="database" placeholder="Leave empty to browse all" autocomplete="off">
         </div>
-        <div>
-            <span class="col-md-9">
-                Permanent login <input type="checkbox" name="permanent_login">
-            </span>
-            <span class="col-md-3 ml-4">
-                <button class="btn btn-primary">Login</button>
-            </span>
+        <div class="d-flex justify-content-between align-items-center flex-wrap pt-2">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="permanent" name="permanent_login">
+                <label class="custom-control-label text-muted small" for="permanent">Remember on this device</label>
+            </div>
+            <button type="submit" class="btn btn-primary px-4">Connect</button>
         </div>
-    </div>
-</form>
+    </form>
+</div>
+</div>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Activity log — PyAdminer</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="/static/js/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="/static/js/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="/static/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/font-awesome.min.css">
+</head>
+<body class="py-app">
+<div class="container-fluid px-0">
+    {% include 'header.html' %}
+    <div class="d-flex flex-column flex-md-row align-items-stretch py-layout w-100">
+        {% include 'sidebar.html' %}
+        <main class="py-main flex-grow-1">
+        {% if error %}
+        <div class="alert alert-danger mb-3" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <div class="py-panel mb-3">
+            <h1 class="py-section-title mb-2">Activity log</h1>
+            <p class="text-muted small mb-0">
+                JSON log file{% if audit_log_path_display %}: <code>{{ audit_log_path_display }}</code>{% endif %}.
+                The table below reads only the <strong>end</strong> of the file so large logs stay fast.
+                Use a larger scan window or download the full file for older entries.
+            </p>
+        </div>
+
+        {% if audit_meta.file_missing %}
+        <div class="alert alert-secondary border mb-3">No log file yet. It is created when the first action is recorded.</div>
+        {% endif %}
+
+        {% if audit_meta.scan_truncated and not audit_meta.file_missing %}
+        <div class="alert alert-secondary border mb-3">
+            This log is larger than the current scan window. Showing matches from the <strong>last {{ (audit_meta.scanned_bytes / 1024)|int }} KB</strong> only.
+            Increase “Scan from end” or use download for the full file.
+        </div>
+        {% endif %}
+
+        <div class="py-panel mb-3">
+            <form method="get" action="{{ url_for('main.audit_log') }}" class="form-row align-items-end">
+                <div class="form-group col-md-2 col-sm-6">
+                    <label for="alimit">Max rows</label>
+                    <select name="limit" id="alimit" class="form-control form-control-sm">
+                        {% for n in [50, 100, 200, 300, 500] %}
+                        <option value="{{ n }}" {% if audit_limit == n %}selected{% endif %}>{{ n }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col-md-2 col-sm-6">
+                    <label for="ascan">Scan from end</label>
+                    <select name="scan_kb" id="ascan" class="form-control form-control-sm">
+                        {% for kb in allowed_scan_kb %}
+                        <option value="{{ kb }}" {% if audit_scan_kb == kb %}selected{% endif %}>{{ kb }} KB</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col-md-2 col-sm-6">
+                    <label for="aaction">Action contains</label>
+                    <input type="text" name="action" id="aaction" class="form-control form-control-sm" value="{{ audit_action_filter }}" placeholder="e.g. sql_execute" autocomplete="off">
+                </div>
+                <div class="form-group col-md-3 col-sm-12">
+                    <label for="aq">Text search</label>
+                    <input type="text" name="q" id="aq" class="form-control form-control-sm" value="{{ audit_text_filter }}" placeholder="Any field (detail, query, …)" autocomplete="off">
+                </div>
+                <div class="form-group col-md-3 col-sm-12 mb-md-0">
+                    <button type="submit" class="btn btn-primary btn-sm mr-2">Apply</button>
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('main.audit_log') }}">Reset</a>
+                    {% if not audit_meta.file_missing %}
+                    <a class="btn btn-outline-secondary btn-sm ml-1" href="{{ url_for('main.audit_log_download') }}">Download full log</a>
+                    {% endif %}
+                </div>
+            </form>
+            <p class="text-muted small mt-2 mb-0">
+                Matched in this window: <strong>{{ audit_meta.matched_in_scan }}</strong>
+                {% if audit_meta.file_size %}· File size: {{ (audit_meta.file_size / 1024)|int }} KB{% endif %}
+            </p>
+        </div>
+
+        <div class="py-table-wrap">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>Time (UTC)</th>
+                            <th>Action</th>
+                            <th>Detail</th>
+                            <th>Query</th>
+                            <th>HTTP</th>
+                            <th>MySQL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for e in audit_entries %}
+                        <tr>
+                            <td class="text-nowrap small">{{ e.ts or '—' }}</td>
+                            <td><code class="small">{{ e.action }}</code></td>
+                            <td class="small">{{ e.detail }}</td>
+                            <td class="small" style="max-width: 28rem;">
+                                {% if e.query %}
+                                <pre class="mb-0 py-audit-query">{{ e.query }}</pre>
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">
+                                {% if e.method %}{{ e.method }}{% endif %}
+                                {% if e.path %}<br><span class="text-break">{{ e.path }}</span>{% endif %}
+                                {% if e.remote_addr %}<br>{{ e.remote_addr }}{% endif %}
+                            </td>
+                            <td class="small text-muted">
+                                {% if e.mysql_user %}{{ e.mysql_user }}{% endif %}
+                                {% if e.mysql_host %}@{{ e.mysql_host }}{% endif %}
+                                {% if not e.mysql_user and not e.mysql_host %}—{% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-muted text-center py-4">No entries match your filters in this scan window.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <p class="text-muted small mt-3 mb-0">
+            <a href="{{ url_for('main.py_admin') }}">← Back to databases</a>
+        </p>
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -1,32 +1,53 @@
- <!-- sidebar -->
-<div class="col-md-2" style="overflow: auto !important;max-height: 910px;">
-    <h4>Databases</h4>
+<aside class="py-sidebar">
+    <p class="py-sidebar-title">Navigation</p>
     {% if login %}
-        <select class="form-control" onchange="location.href='?database='+this.value">
-            <option value="">All</option>
-            {% for database in databases %}
-            <option value="{{database['SCHEMA_NAME']}}" {% if selected_db==database['SCHEMA_NAME'] %} selected {% endif %}>
-                {{database['SCHEMA_NAME']}}
-            </option>>
-            {% endfor %}
-        </select>
+    {% set py_root = url_for('main.py_admin') %}
+    <label class="sr-only" for="py-db-select">Database</label>
+    <select id="py-db-select" class="form-control form-control-sm" data-py-root="{{ py_root }}"
+            onchange="(function(s){var b=s.getAttribute('data-py-root')||'';location.href=s.value?(b+'?database='+encodeURIComponent(s.value)):b;})(this)">
+        <option value="">All databases</option>
+        {% for database in databases %}
+        <option value="{{ database['SCHEMA_NAME'] }}" {% if selected_db == database['SCHEMA_NAME'] %}selected{% endif %}>
+            {{ database['SCHEMA_NAME'] }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <div class="py-sidebar-actions">
+        <a href="{% if selected_db %}{{ url_for('main.py_admin', database=selected_db) }}{% else %}{{ py_root }}{% endif %}">Overview</a>
+        <span class="text-muted">·</span>
+        <a href="{% if selected_db %}{{ url_for('main.py_admin', database=selected_db, sql_panel='1') }}{% else %}{{ url_for('main.py_admin', sql_panel='1') }}{% endif %}">SQL</a>
+        <span class="text-muted">·</span>
+        <a href="{{ url_for('main.audit_log') }}" class="{% if request.endpoint == 'main.audit_log' %}font-weight-bold{% endif %}">Activity log</a>
+        <span class="text-muted py-sidebar-actions-sep" aria-hidden="true">·</span>
+        <a href="{{ url_for('main.ai_settings') }}"
+           class="py-sidebar-ai-link{% if request.endpoint == 'main.ai_settings' %} py-sidebar-ai-link--active{% endif %}"
+           title="AI assistant settings">AI</a>
+    </div>
     {% endif %}
 
-    <ul class="pt-4" style="list-style: none; padding-left: 2px !important;">
-        {% if login %}
-        <span class="pt-4"><a href="?database={{selected_db if selected_db}}"> Home </a></span> |
-        <span class="pt-4"><a href="?database={{selected_db if selected_db}}&sql_panel=1"> SQL Query </a></span>
+    <p class="py-sidebar-title mt-3">{% if not selected_db %}Databases{% else %}Tables{% endif %}</p>
+    <ul class="py-nav-list">
+        {% if not selected_db %}
+            {% for database in databases %}
+            <li>
+                <a class="py-nav-link {% if selected_db == database['SCHEMA_NAME'] %}active{% endif %}"
+                   href="{{ url_for('main.py_admin', database=database['SCHEMA_NAME']) }}">{{ database['SCHEMA_NAME'] }}</a>
+            </li>
+            {% endfor %}
+        {% else %}
+            <li>
+                <a class="py-nav-link" href="{{ url_for('main.py_admin', database=selected_db) }}">‹ All tables</a>
+            </li>
+            {% for table in tables %}
+            <li>
+                <a class="py-nav-link {% if selected_table == table['TABLE_NAME'] %}active{% endif %}"
+                   href="{{ url_for('main.py_admin', database=selected_db, table=table['TABLE_NAME']) }}">{{ table['TABLE_NAME'] }}</a>
+            </li>
+            {% endfor %}
+            {% if not tables %}
+            <li class="py-sidebar-hint text-muted">No tables yet. <a href="{{ url_for('main.py_admin', create='table', database=selected_db) }}">Create</a></li>
+            {% endif %}
         {% endif %}
-        <hr>
-    {% if not selected_db %}
-        {% for database in databases %}
-            <li> <a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></li>
-        {% endfor %}
-    {% else %}
-        {% for table in tables %}
-            <li> <a href="?database={{selected_db}}&table={{table['TABLE_NAME']}}">{{table['TABLE_NAME']}}</a></li>
-        {% endfor %}
-    {% endif %}
     </ul>
-</div>
-<!-- sidebar ends here-->
+</aside>

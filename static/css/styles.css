@@ -1,31 +1,609 @@
-select{
-    width: 200px;
-    height: 30px;
-}
-.table-icon{
-    font-size: 14px;
-    font-weight: bold;
-}
-.hide{
-    display: none !important;
-}
-.pointer{
-    cursor: pointer !important;
-}
-#drop_databases_menu{
-    color: #007bff !important;
-}
-.table-ground{
-    width: 100%;
-    max-height: 884px;
-    overflow: auto;
-}
-.search_row{
-    border: 1px solid #d0c6c6;
-    padding: 14px;
+/* PyAdminer — layout and components (Bootstrap 4 compatible) */
+
+:root {
+  --py-bg: #f4f4f5;
+  --py-surface: #ffffff;
+  --py-border: #e4e4e7;
+  --py-text: #18181b;
+  --py-muted: #71717a;
+  /* Accent = charcoal gray (replaces blue for links, focus, primary actions) */
+  --py-primary: #3f3f46;
+  --py-primary-hover: #27272a;
+  --py-primary-soft: #f4f4f5;
+  --py-danger: #3f3f46;
+  --py-success: #52525b;
+  --py-radius: 10px;
+  --py-radius-sm: 6px;
+  --py-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --py-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --py-sidebar-w: 260px;
 }
 
-#edit_form{
-    max-height: 652px;
-    overflow: auto;
+.py-app {
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  background: var(--py-bg);
+  color: var(--py-text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.py-app a {
+  color: var(--py-primary);
+}
+
+.py-app a:hover {
+  color: var(--py-primary-hover);
+}
+
+/* Header */
+.py-header {
+  background: var(--py-surface);
+  border-bottom: 1px solid var(--py-border);
+  box-shadow: var(--py-shadow);
+  padding: 0.65rem 1.25rem;
+  align-items: center;
+}
+
+.py-brand {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--py-text);
+  letter-spacing: -0.02em;
+}
+
+.py-brand small,
+.py-brand sub {
+  font-size: 0.65em;
+  font-weight: 500;
+  color: var(--py-muted);
+  vertical-align: middle;
+}
+
+.py-header-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--py-text);
+  margin: 0;
+}
+
+.py-header-title .text-muted {
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+/* Layout row under header */
+.py-layout {
+  min-height: calc(100vh - 56px);
+}
+
+/* Sidebar */
+.py-sidebar {
+  background: var(--py-surface);
+  border-right: 1px solid var(--py-border);
+  padding: 1rem 0.75rem 2rem;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  flex: 0 0 var(--py-sidebar-w);
+  max-width: var(--py-sidebar-w);
+}
+
+@media (min-width: 768px) {
+  .py-sidebar {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .py-sidebar {
+    flex: 0 0 auto;
+    max-width: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--py-border);
+    max-height: none;
+  }
+
+  .py-main {
+    max-height: none;
+  }
+
+  .py-layout {
+    min-height: auto;
+  }
+}
+
+.py-sidebar-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--py-muted);
+  margin: 0 0 0.5rem 0.25rem;
+}
+
+.py-sidebar .form-control {
+  font-size: 0.875rem;
+  border-radius: var(--py-radius-sm);
+  border-color: var(--py-border);
+}
+
+.py-sidebar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--py-border);
+}
+
+.py-sidebar-actions a {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.py-sidebar-actions a.py-sidebar-ai-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  margin: -0.05rem 0;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--py-surface);
+  background: var(--py-primary);
+  border: 1px solid var(--py-primary);
+  text-decoration: none;
+  box-shadow: var(--py-shadow);
+}
+
+.py-sidebar-actions a.py-sidebar-ai-link:hover {
+  color: var(--py-surface);
+  background: var(--py-primary-hover);
+  border-color: var(--py-primary-hover);
+  text-decoration: none;
+}
+
+.py-sidebar-actions a.py-sidebar-ai-link--active {
+  outline: 2px solid var(--py-text);
+  outline-offset: 1px;
+}
+
+.py-sidebar-actions-sep + .py-sidebar-ai-link {
+  margin-left: 0.1rem;
+}
+
+.py-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+
+.py-nav-list li {
+  margin: 0;
+}
+
+.py-nav-link {
+  display: block;
+  padding: 0.4rem 0.5rem 0.4rem 0.65rem;
+  border-radius: var(--py-radius-sm);
+  color: var(--py-text);
+  font-size: 0.875rem;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+
+.py-nav-link:hover {
+  background: var(--py-bg);
+  color: var(--py-primary);
+  text-decoration: none;
+}
+
+.py-nav-link.active {
+  background: var(--py-primary-soft);
+  color: var(--py-primary);
+  font-weight: 600;
+  border-left-color: var(--py-primary);
+}
+
+.py-sidebar-hint {
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.5rem;
+  margin-top: 0.25rem;
+}
+
+/* Main */
+.py-main {
+  flex: 1;
+  min-width: 0;
+  padding: 1.25rem 1.5rem 2rem;
+  max-height: calc(100vh - 56px);
+  overflow: auto;
+}
+
+.py-panel {
+  background: var(--py-surface);
+  border: 1px solid var(--py-border);
+  border-radius: var(--py-radius);
+  box-shadow: var(--py-shadow);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.py-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.py-toolbar .btn-sm {
+  border-radius: var(--py-radius-sm);
+}
+
+/* Table sub-nav (Structure / Data / Alter) */
+.py-table-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--py-border);
+}
+
+.py-table-tabs a {
+  display: inline-block;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 999px;
+  color: var(--py-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.py-table-tabs a:hover {
+  background: var(--py-bg);
+  color: var(--py-primary);
+  text-decoration: none;
+}
+
+.py-table-tabs a.active {
+  background: var(--py-primary);
+  color: var(--py-surface);
+  border-color: var(--py-primary);
+}
+
+.py-table-tabs .py-tab-muted {
+  color: var(--py-muted);
+  font-size: 0.8125rem;
+  padding: 0.45rem 0.5rem;
+}
+
+.py-table-tabs-divider {
+  color: var(--py-border);
+  user-select: none;
+}
+
+/* Data tables */
+.py-table-wrap {
+  border-radius: var(--py-radius);
+  border: 1px solid var(--py-border);
+  overflow: hidden;
+  background: var(--py-surface);
+}
+
+.py-app .table {
+  margin-bottom: 0;
+}
+
+.py-app .table thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: var(--py-muted);
+  border-top: none;
+  background: var(--py-primary-soft);
+}
+
+.py-app .table td {
+  vertical-align: middle;
+}
+
+/* Forms */
+.py-app .form-control {
+  border-radius: var(--py-radius-sm);
+  border-color: var(--py-border);
+}
+
+.py-app .form-control:focus {
+  border-color: var(--py-primary);
+  box-shadow: 0 0 0 3px rgba(63, 63, 70, 0.12);
+}
+
+.py-app select.form-control {
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+  min-height: calc(1.5em + 0.75rem + 2px);
+}
+
+.py-app label {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--py-text);
+  margin-bottom: 0.25rem;
+}
+
+/* Login */
+.py-login-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+}
+
+.py-login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--py-surface);
+  border: 1px solid var(--py-border);
+  border-radius: var(--py-radius);
+  box-shadow: var(--py-shadow-md);
+  padding: 1.75rem 1.75rem 1.5rem;
+}
+
+.py-login-card h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.py-login-card .text-muted {
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+.py-login-card .form-group {
+  margin-bottom: 1rem;
+}
+
+/* Search / filter panels */
+.search_row {
+  border: 1px solid var(--py-border);
+  border-radius: var(--py-radius-sm);
+  padding: 1rem;
+  background: var(--py-primary-soft);
+}
+
+/* Activity log — query cells */
+.py-audit-query {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 12rem;
+  overflow: auto;
+  margin: 0;
+  background: var(--py-primary-soft);
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--py-radius-sm);
+  border: 1px solid var(--py-border);
+}
+
+/* SQL panel */
+.py-sql-editor {
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  border-radius: var(--py-radius-sm);
+}
+
+/* Misc */
+.hide {
+  display: none !important;
+}
+
+.pointer {
+  cursor: pointer !important;
+}
+
+/* Database list — drop selected (destructive, high visibility) */
+.py-drop-db-zone {
+  border-color: var(--py-border) !important;
+  box-shadow: var(--py-shadow);
+  min-width: min(100%, 280px);
+}
+
+.py-btn-drop-databases {
+  font-weight: 600;
+  white-space: nowrap;
+  color: #7f1d1d !important;
+  background: #fff !important;
+  border: 1px solid #b91c1c !important;
+  border-radius: var(--py-radius-sm);
+}
+
+.py-btn-drop-databases:not(:disabled):hover,
+.py-btn-drop-databases:not(:disabled):focus {
+  color: #fff !important;
+  background: #b91c1c !important;
+  border-color: #991b1b !important;
+  box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.25);
+}
+
+.py-btn-drop-databases:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  color: #71717a !important;
+  border-color: #d4d4d8 !important;
+  background: #f4f4f5 !important;
+}
+
+.table-ground {
+  width: 100%;
+}
+
+#edit_form {
+  max-height: min(652px, 70vh);
+  overflow: auto;
+}
+
+/* Alerts */
+.py-app .alert {
+  border-radius: var(--py-radius-sm);
+  border: none;
+}
+
+.py-app .alert-danger {
+  background: var(--py-primary-soft);
+  color: var(--py-text);
+  border: 1px solid var(--py-border);
+}
+
+.py-app .alert-danger .alert-link {
+  color: var(--py-primary-hover);
+  font-weight: 600;
+}
+
+.py-app .btn-primary {
+  background: var(--py-primary);
+  border-color: var(--py-primary);
+  color: var(--py-surface);
+  font-weight: 600;
+  border-radius: var(--py-radius-sm);
+  padding: 0.45rem 1rem;
+}
+
+.py-app .btn-primary:hover,
+.py-app .btn-primary:focus {
+  background: var(--py-primary-hover);
+  border-color: var(--py-primary-hover);
+  color: var(--py-surface);
+}
+
+.py-app .btn-secondary {
+  border-radius: var(--py-radius-sm);
+  font-weight: 500;
+  color: var(--py-text);
+  background: var(--py-surface);
+  border-color: var(--py-border);
+}
+
+.py-app .btn-secondary:hover,
+.py-app .btn-secondary:focus {
+  background: var(--py-bg);
+  border-color: #d4d4d8;
+  color: var(--py-text);
+}
+
+.py-app .btn-outline-secondary {
+  color: var(--py-muted);
+  border-color: var(--py-border);
+  background: var(--py-surface);
+}
+
+.py-app .btn-outline-secondary:hover,
+.py-app .btn-outline-secondary:focus {
+  background: var(--py-bg);
+  border-color: #d4d4d8;
+  color: var(--py-text);
+}
+
+/* Bootstrap “info” (cyan) — neutral in app shell */
+.py-app .btn-info {
+  background: var(--py-primary);
+  border-color: var(--py-primary);
+  color: var(--py-surface);
+}
+
+.py-app .btn-info:hover,
+.py-app .btn-info:focus {
+  background: var(--py-primary-hover);
+  border-color: var(--py-primary-hover);
+  color: var(--py-surface);
+}
+
+/* Page section titles */
+.py-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--py-text);
+}
+
+/* DataTables tweak inside app */
+.py-app .dataTables_wrapper {
+  padding: 0.5rem 0;
+}
+
+/* Replace default DataTables blue-tinted “selected” / sort highlights with neutrals */
+.py-app table.dataTable tbody tr.selected,
+.py-app table.dataTable tbody tr.selected > td,
+.py-app table.dataTable tbody tr.selected > th {
+  background-color: #e4e4e7 !important;
+}
+
+.py-app table.dataTable.display tbody tr:hover.selected > .sorting_1,
+.py-app table.dataTable.display tbody tr:hover.selected > .sorting_2,
+.py-app table.dataTable.display tbody tr:hover.selected > .sorting_3,
+.py-app table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_1,
+.py-app table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_2,
+.py-app table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_3 {
+  background-color: #d4d4d8 !important;
+}
+
+.py-app table.dataTable.display tbody tr.odd.selected > .sorting_1,
+.py-app table.dataTable.display tbody tr.odd.selected > .sorting_2,
+.py-app table.dataTable.display tbody tr.odd.selected > .sorting_3,
+.py-app table.dataTable.display tbody tr.even.selected > .sorting_1,
+.py-app table.dataTable.display tbody tr.even.selected > .sorting_2,
+.py-app table.dataTable.display tbody tr.even.selected > .sorting_3 {
+  background-color: #e4e4e7 !important;
+}
+
+/* DataTables + Bootstrap pagination (defaults are blue) */
+.py-app .dataTables_wrapper ul.pagination .page-link {
+  color: var(--py-primary);
+}
+
+.py-app .dataTables_wrapper ul.pagination .page-item.active .page-link {
+  background-color: var(--py-primary);
+  border-color: var(--py-primary);
+  color: var(--py-surface);
+}
+
+.py-app .dataTables_wrapper ul.pagination .page-link:hover {
+  color: var(--py-primary-hover);
+  background-color: var(--py-bg);
+  border-color: var(--py-border);
+}
+
+.py-app .dataTables_wrapper ul.pagination .page-item.active .page-link:hover {
+  color: var(--py-surface);
+  background-color: var(--py-primary-hover);
+  border-color: var(--py-primary-hover);
+}
+
+.py-pre-wrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.py-json-cell summary,
+.py-long-text summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.py-viz-section h3 {
+  margin-bottom: 0.5rem;
 }

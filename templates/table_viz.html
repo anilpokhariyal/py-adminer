@@ -1,0 +1,297 @@
+<div class="py-panel mb-3">
+    <h2 class="py-section-title">Visualize: {{ selected_table }}</h2>
+    <p class="text-muted small mb-0">Column profiles, charts, and pivot summaries. Data stays on the server; only aggregates are fetched.</p>
+</div>
+
+{% if not table_structure|length %}
+<p class="text-muted">No column metadata loaded for this table.</p>
+{% else %}
+
+<div class="py-viz-section py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Column profile</h3>
+    <div class="form-row align-items-end">
+        <div class="col-md-4 mb-2">
+            <label class="small text-muted mb-0" for="viz_profile_col">Column</label>
+            <select id="viz_profile_col" class="form-control form-control-sm">
+                {% for col in table_structure %}
+                <option value="{{ col['COLUMN_NAME'] }}">{{ col['COLUMN_NAME'] }} ({{ col['COLUMN_TYPE'] }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 mb-2">
+            <button type="button" class="btn btn-sm btn-primary" id="viz_profile_btn">Load stats</button>
+        </div>
+    </div>
+    <pre id="viz_profile_out" class="small bg-light border rounded p-2 mt-2 mb-0" style="max-height:14rem;overflow:auto;">Select a column and load stats.</pre>
+</div>
+
+<div class="py-viz-section py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Categorical chart</h3>
+    <div class="form-row align-items-end">
+        <div class="col-md-4 mb-2">
+            <label class="small text-muted mb-0" for="viz_cat_col">Column</label>
+            <select id="viz_cat_col" class="form-control form-control-sm">
+                {% for col in table_structure %}
+                <option value="{{ col['COLUMN_NAME'] }}">{{ col['COLUMN_NAME'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 mb-2">
+            <button type="button" class="btn btn-sm btn-primary" id="viz_cat_btn">Load</button>
+        </div>
+        <div class="col-md-3 mb-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="viz_cat_png" disabled>Download PNG</button>
+        </div>
+    </div>
+    <div class="py-viz-canvas-wrap mt-2" style="max-width:640px;">
+        <canvas id="viz_cat_chart" height="220"></canvas>
+    </div>
+</div>
+
+<div class="py-viz-section py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Time series (daily counts)</h3>
+    <p class="small text-muted">Uses <code>DATE(column)</code> — pick a date or datetime column.</p>
+    <div class="form-row align-items-end">
+        <div class="col-md-4 mb-2">
+            <label class="small text-muted mb-0" for="viz_ts_col">Column</label>
+            <select id="viz_ts_col" class="form-control form-control-sm">
+                {% for col in table_structure %}
+                <option value="{{ col['COLUMN_NAME'] }}">{{ col['COLUMN_NAME'] }} ({{ col['COLUMN_TYPE'] }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 mb-2">
+            <button type="button" class="btn btn-sm btn-primary" id="viz_ts_btn">Load</button>
+        </div>
+        <div class="col-md-3 mb-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="viz_ts_png" disabled>Download PNG</button>
+        </div>
+    </div>
+    <div class="py-viz-canvas-wrap mt-2" style="max-width:720px;">
+        <canvas id="viz_ts_chart" height="220"></canvas>
+    </div>
+</div>
+
+<div class="py-viz-section py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Scatter (numeric × numeric)</h3>
+    <div class="form-row align-items-end">
+        <div class="col-md-3 mb-2">
+            <label class="small text-muted mb-0" for="viz_sc_x">X</label>
+            <select id="viz_sc_x" class="form-control form-control-sm">
+                {% for col in table_structure %}
+                <option value="{{ col['COLUMN_NAME'] }}">{{ col['COLUMN_NAME'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 mb-2">
+            <label class="small text-muted mb-0" for="viz_sc_y">Y</label>
+            <select id="viz_sc_y" class="form-control form-control-sm">
+                {% for col in table_structure %}
+                <option value="{{ col['COLUMN_NAME'] }}">{{ col['COLUMN_NAME'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 mb-2">
+            <button type="button" class="btn btn-sm btn-primary" id="viz_sc_btn">Load</button>
+        </div>
+        <div class="col-md-3 mb-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="viz_sc_png" disabled>Download PNG</button>
+        </div>
+    </div>
+    <div class="py-viz-canvas-wrap mt-2" style="max-width:640px;">
+        <canvas id="viz_sc_chart" height="260"></canvas>
+    </div>
+</div>
+
+<div class="py-viz-section py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Pivot (GROUP BY)</h3>
+    <div class="form-row">
+        <div class="col-md-3 mb-2">
+            <label class="small text-muted mb-0" for="viz_pv_row">Row dimension</label>
+            <select id="viz_pv_row" class="form-control form-control-sm">
+                {% for col in table_structure %}
+                <option value="{{ col['COLUMN_NAME'] }}">{{ col['COLUMN_NAME'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 mb-2">
+            <label class="small text-muted mb-0" for="viz_pv_col">Column dimension</label>
+            <select id="viz_pv_col" class="form-control form-control-sm">
+                {% for col in table_structure %}
+                <option value="{{ col['COLUMN_NAME'] }}">{{ col['COLUMN_NAME'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 mb-2">
+            <label class="small text-muted mb-0" for="viz_pv_val">Value</label>
+            <select id="viz_pv_val" class="form-control form-control-sm">
+                {% for col in table_structure %}
+                <option value="{{ col['COLUMN_NAME'] }}">{{ col['COLUMN_NAME'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 mb-2">
+            <label class="small text-muted mb-0" for="viz_pv_agg">Aggregate</label>
+            <select id="viz_pv_agg" class="form-control form-control-sm">
+                <option>SUM</option>
+                <option>AVG</option>
+                <option>COUNT</option>
+                <option>MIN</option>
+                <option>MAX</option>
+            </select>
+        </div>
+        <div class="col-md-1 mb-2 d-flex align-items-end">
+            <button type="button" class="btn btn-sm btn-primary" id="viz_pv_btn">Run</button>
+        </div>
+    </div>
+    <pre id="viz_pv_out" class="small bg-light border rounded p-2 mt-2 mb-0" style="max-height:18rem;overflow:auto;">Pivot results appear here (first 2000 groups).</pre>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script type="text/javascript">
+(function () {
+  var db = {{ selected_db|tojson }};
+  var tbl = {{ selected_table|tojson }};
+  var csrf = document.querySelector('meta[name="csrf-token"]');
+  var csrfToken = csrf ? csrf.getAttribute('content') : '';
+
+  function qs(sel) { return document.querySelector(sel); }
+
+  function apiProfile() {
+    var col = qs('#viz_profile_col').value;
+    return fetch('/py_adminer/api/viz/profile?database=' + encodeURIComponent(db) +
+      '&table=' + encodeURIComponent(tbl) + '&column=' + encodeURIComponent(col))
+      .then(function (r) { return r.json(); });
+  }
+
+  qs('#viz_profile_btn').addEventListener('click', function () {
+    var out = qs('#viz_profile_out');
+    out.textContent = 'Loading…';
+    apiProfile().then(function (data) {
+      out.textContent = JSON.stringify(data, null, 2);
+    }).catch(function () { out.textContent = 'Request failed.'; });
+  });
+
+  var catChart = null;
+  var tsChart = null;
+  var scChart = null;
+
+  function destroyChart(ch) {
+    if (ch) { ch.destroy(); }
+  }
+
+  function downloadChart(canvasId, name) {
+    var c = document.getElementById(canvasId);
+    if (!c || !c.toDataURL) return;
+    var a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = name + '.png';
+    a.click();
+  }
+
+  qs('#viz_cat_btn').addEventListener('click', function () {
+    var col = qs('#viz_cat_col').value;
+    fetch('/py_adminer/api/viz/chart?kind=categorical&database=' + encodeURIComponent(db) +
+      '&table=' + encodeURIComponent(tbl) + '&column=' + encodeURIComponent(col))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var err = data.error;
+        if (err) { alert(err); return; }
+        destroyChart(catChart);
+        var ctx = qs('#viz_cat_chart').getContext('2d');
+        catChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.labels,
+            datasets: [{ label: 'Count', data: data.values, backgroundColor: 'rgba(63,63,70,0.65)' }]
+          },
+          options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { maxRotation: 60 } } } }
+        });
+        qs('#viz_cat_png').disabled = false;
+      });
+  });
+  qs('#viz_cat_png').addEventListener('click', function () { downloadChart('viz_cat_chart', 'chart_categorical'); });
+
+  qs('#viz_ts_btn').addEventListener('click', function () {
+    var col = qs('#viz_ts_col').value;
+    fetch('/py_adminer/api/viz/chart?kind=timeseries&database=' + encodeURIComponent(db) +
+      '&table=' + encodeURIComponent(tbl) + '&column=' + encodeURIComponent(col))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.error) { alert(data.error); return; }
+        destroyChart(tsChart);
+        var ctx = qs('#viz_ts_chart').getContext('2d');
+        tsChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.labels,
+            datasets: [{ label: 'Rows per day', data: data.values, borderColor: '#3f3f46', tension: 0.15, fill: false }]
+          },
+          options: { plugins: { legend: { display: false } } }
+        });
+        qs('#viz_ts_png').disabled = false;
+      });
+  });
+  qs('#viz_ts_png').addEventListener('click', function () { downloadChart('viz_ts_chart', 'chart_timeseries'); });
+
+  qs('#viz_sc_btn').addEventListener('click', function () {
+    var x = qs('#viz_sc_x').value;
+    var y = qs('#viz_sc_y').value;
+    fetch('/py_adminer/api/viz/chart?kind=scatter&database=' + encodeURIComponent(db) +
+      '&table=' + encodeURIComponent(tbl) + '&column=' + encodeURIComponent(x) +
+      '&column2=' + encodeURIComponent(y))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.error) { alert(data.error); return; }
+        destroyChart(scChart);
+        var pts = (data.points || []).map(function (p) { return { x: p.x, y: p.y }; });
+        var ctx = qs('#viz_sc_chart').getContext('2d');
+        scChart = new Chart(ctx, {
+          type: 'scatter',
+          data: {
+            datasets: [{
+              label: x + ' vs ' + y,
+              data: pts,
+              backgroundColor: 'rgba(63,63,70,0.55)'
+            }]
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            scales: { x: { type: 'linear', position: 'bottom' } }
+          }
+        });
+        qs('#viz_sc_png').disabled = false;
+      });
+  });
+  qs('#viz_sc_png').addEventListener('click', function () { downloadChart('viz_sc_chart', 'chart_scatter'); });
+
+  qs('#viz_pv_btn').addEventListener('click', function () {
+    var body = {
+      database: db,
+      table: tbl,
+      row: qs('#viz_pv_row').value,
+      col: qs('#viz_pv_col').value,
+      value: qs('#viz_pv_val').value,
+      agg: qs('#viz_pv_agg').value,
+      limit: 2000
+    };
+    if (body.row === body.col || body.row === body.value || body.col === body.value) {
+      qs('#viz_pv_out').textContent = 'Row, column, and value columns must be different.';
+      return;
+    }
+    qs('#viz_pv_out').textContent = 'Running…';
+    fetch('/py_adminer/api/viz/pivot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify(body)
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      qs('#viz_pv_out').textContent = JSON.stringify(data, null, 2);
+    }).catch(function () { qs('#viz_pv_out').textContent = 'Request failed.'; });
+  });
+})();
+</script>
+
+{% endif %}

@@ -1,5 +1,6 @@
 <div class="row mt-2 mb-2">
-    <form name="select_query" method="POST" action="#">
+    <form name="select_query" method="POST" action="{{ url_for('main.py_admin', database=selected_db, table=selected_table, action='data') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="col-md-12">
         <div class="search_row">
         {% if search_value|length %}
@@ -67,9 +68,6 @@
                     <option {% if expression[i]== "IS NOT NULL" %} selected {% endif %}>
                         IS NOT NULL
                     </option>
-                    <option {% if expression[i]== "SQL" %} selected {% endif %}>
-                        SQL
-                    </option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -112,7 +110,6 @@
                     <option>NOT REGEXP</option>
                     <option>NOT IN</option>
                     <option>IS NOT NULL</option>
-                    <option>SQL</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -139,7 +136,7 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label style="color:#fff">Order</label>
+                <label>Order</label>
                 <select class="form-control" name="order">
                     <option value="asc" {% if order == "asc" %} selected {% endif %}>asc</option>
                     <option value="desc" {% if order == "desc" %} selected {% endif %}>desc</option>
@@ -150,7 +147,7 @@
                 <input type="number" name="limit" class="form-control" value="{{limit}}">
             </div>
             <div class="col-md-3 pt-4 mt-2">
-                <label style="color:#fff">Action</label>
+                <label>Action</label>
                 <button type="submit" class="btn btn-primary" name="filter_query">Select</button>
             </div>
             </div>
@@ -163,7 +160,12 @@
     </div>
 </div>
 
-<table class="table table-bordered mt-4 datatable">
+<div class="form-check mb-2">
+    <input type="checkbox" class="form-check-input" id="py_heatmap_toggle">
+    <label class="form-check-label small" for="py_heatmap_toggle">Heatmap numeric columns (by value range in the current page)</label>
+</div>
+
+<table id="py-data-grid" class="table table-bordered mt-2 datatable">
     <thead>
         <tr>
             <th>Action</th>
@@ -175,14 +177,35 @@
         </tr>
     </thead>
     {% for data in table_data %}
-        <tr>
+        <tr data-pk="{{ data|pk_json(primary_keys)|e }}">
             <td>
+                {% if primary_keys|length %}
                 <em class="fa fa-edit pointer edit_row" title="Edit Row"></em>
-                <em class="fa fa-trash pointer delete_row" title="Delete Row" id="{{ data['id'] }}"></em>
+                <em class="fa fa-trash pointer delete_row" title="Delete Row"></em>
+                {% endif %}
             </td>
             {% for column in table_columns %}
-            <td column_name="{{column['COLUMN_NAME']}}">
-                {{data[column['COLUMN_NAME']]}}
+            {% set cn = column['COLUMN_NAME'] %}
+            {% set val = data[cn] %}
+            <td column_name="{{ cn }}" class="py-data-cell">
+                {% if cn in json_column_names and val is not none %}
+                <details class="py-json-cell border-0">
+                    <summary class="small text-muted">JSON</summary>
+                    <pre class="small mb-0 py-pre-wrap bg-transparent">{% if val is mapping or (val is sequence and val is not string) %}{{ val | tojson }}{% else %}{{ val | e }}{% endif %}</pre>
+                </details>
+                {% elif cn in wide_text_column_names and val is not none %}
+                {% set s = val | string %}
+                {% if s|length > 160 %}
+                <details class="py-long-text">
+                    <summary class="small">{{ s[:90] }}…</summary>
+                    <pre class="small mb-0 py-pre-wrap">{{ s | e }}</pre>
+                </details>
+                {% else %}
+                {{ val }}
+                {% endif %}
+                {% else %}
+                {{ val }}
+                {% endif %}
             </td>
             {% endfor %}
         </tr>
@@ -190,17 +213,93 @@
 </table>
 {% include 'edit_row.html' %}
 <script type="text/javascript">
+    (function () {
+      var numericCols = {{ numeric_column_names | tojson }};
+      function parseNum(t) {
+        if (t == null || t === "") return null;
+        var s = String(t).replace(/,/g, "").trim();
+        if (s === "") return null;
+        var n = Number(s);
+        return isFinite(n) ? n : null;
+      }
+      function heatmapColor(t, lo, hi) {
+        if (lo === hi) return "rgba(63,63,70,0.12)";
+        var x = (t - lo) / (hi - lo);
+        var a = 0.12 + x * 0.38;
+        return "rgba(63,63,70," + a.toFixed(3) + ")";
+      }
+      function applyHeatmap(on) {
+        var $tbl = $("#py-data-grid");
+        if (!$tbl.length) return;
+        var colIndex = {};
+        for (var i = 0; i < numericCols.length; i++) colIndex[numericCols[i]] = true;
+        $tbl.find("tbody tr").each(function () {
+          $(this).find("td.py-data-cell").each(function (idx) {
+            var $td = $(this);
+            var name = $td.attr("column_name");
+            if (!name || !colIndex[name]) {
+              $td.css("background-color", "");
+              return;
+            }
+            if (!on) {
+              $td.css("background-color", "");
+              return;
+            }
+            var v = parseNum($td.text());
+            $td.data("_pyNum", v);
+          });
+        });
+        if (!on) return;
+        numericCols.forEach(function (name) {
+          var $cells = $tbl.find('td[column_name="' + name.replace(/"/g, '\\"') + '"]');
+          var vals = [];
+          $cells.each(function () {
+            var v = $(this).data("_pyNum");
+            if (v !== null && v !== undefined) vals.push(v);
+          });
+          if (!vals.length) return;
+          var lo = Math.min.apply(null, vals);
+          var hi = Math.max.apply(null, vals);
+          $cells.each(function () {
+            var v = $(this).data("_pyNum");
+            if (v === null || v === undefined) $(this).css("background-color", "");
+            else $(this).css("background-color", heatmapColor(v, lo, hi));
+          });
+        });
+      }
+      $(document).on("pyDatatableInit", function () {
+        if (!$("#py-data-grid").length || !numericCols.length) return;
+        $("#py_heatmap_toggle")
+          .off("change.pyHeatmap")
+          .on("change.pyHeatmap", function () {
+            applyHeatmap($(this).prop("checked"));
+          });
+      });
+    })();
+</script>
+<script type="text/javascript">
     $(document).ready(function(){
        $(document).on('click', '.delete_row', function (){
-          let id = $(this).attr("id");
+          let $tr = $(this).closest('tr');
+          let pkRaw = $tr.attr('data-pk');
+          if (!pkRaw) return;
+          let pk;
+          try { pk = JSON.parse(pkRaw); } catch (e) { return; }
           let table_name = $('#selected_table_name').val();
           let database = "{{ selected_db }}";
+          let csrf = document.querySelector('meta[name="csrf-token"]');
+          let token = csrf ? csrf.getAttribute('content') : '';
           if (confirm("Are you sure to delete this row?")) {
               let xhr = new XMLHttpRequest();
               xhr.open("POST", "/delete_table_row_by_id", true);
               xhr.setRequestHeader('Content-Type', 'application/json');
-              xhr.send(JSON.stringify({"table_name": table_name, "id": id, "database": database}));
-              $(this).closest('tr').remove();
+              xhr.setRequestHeader('X-CSRFToken', token);
+              xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  $tr.remove();
+                }
+              };
+              xhr.send(JSON.stringify({"table_name": table_name, "database": database, "pk": pk}));
           }
        });
     });

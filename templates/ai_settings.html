@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>AI assistant — PyAdminer</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="/static/js/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="/static/js/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="/static/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/font-awesome.min.css">
+</head>
+<body class="py-app">
+<div class="container-fluid px-0">
+    {% include 'header.html' %}
+    <div class="d-flex flex-column flex-md-row align-items-stretch py-layout w-100">
+        {% include 'sidebar.html' %}
+        <main class="py-main flex-grow-1">
+        {% if error %}
+        <div class="alert alert-danger mb-3" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <div class="py-panel mb-3">
+            <h1 class="py-section-title mb-2">AI assistant</h1>
+            <p class="text-muted small mb-0">
+                Configure natural-language to SQL for the <strong>SQL command</strong> screen.
+                API keys are stored <strong>encrypted on the server</strong> (derived from your app <code>SECRET_KEY</code>).
+                Anyone with filesystem access and the secret can decrypt them — protect the host and rotate keys if needed.
+            </p>
+        </div>
+
+        {% if ai_public.globally_disabled %}
+        <div class="alert alert-warning border mb-3">
+            AI is turned off for this deployment via <code>PYADMINER_AI_DISABLE=1</code>. Settings cannot be enabled until that is removed.
+        </div>
+        {% endif %}
+
+        <form method="post" class="py-panel mb-4" action="{{ url_for('main.ai_settings') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="ai_enabled" value="yes" id="ai_enabled"
+                           {% if ai_public.enabled %}checked{% endif %}
+                           {% if ai_public.globally_disabled %}disabled{% endif %}>
+                    <label class="form-check-label font-weight-bold" for="ai_enabled">Enable AI assistant</label>
+                </div>
+                <p class="text-muted small mb-0">When off, the SQL page hides the natural-language panel and the API rejects requests.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="provider">Provider</label>
+                <select class="form-control" name="provider" id="provider" {% if ai_public.globally_disabled %}disabled{% endif %}>
+                    <option value="openai" {% if ai_public.provider == 'openai' %}selected{% endif %}>OpenAI (Chat Completions)</option>
+                    <option value="anthropic" {% if ai_public.provider == 'anthropic' %}selected{% endif %}>Anthropic (Claude)</option>
+                    <option value="openai_compatible" {% if ai_public.provider == 'openai_compatible' %}selected{% endif %}>OpenAI-compatible API</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="api_key">API key</label>
+                <input type="password" class="form-control" name="api_key" id="api_key" autocomplete="off"
+                       placeholder="{% if ai_public.has_api_key %}Leave blank to keep existing key{% else %}Required when enabled{% endif %}"
+                       {% if ai_public.globally_disabled %}disabled{% endif %}>
+            </div>
+
+            <div class="form-group">
+                <label for="base_url">API base URL <span class="text-muted font-weight-normal">(optional)</span></label>
+                <input type="text" class="form-control font-monospace small" name="base_url" id="base_url"
+                       value="{{ ai_public.base_url }}"
+                       placeholder="OpenAI: https://api.openai.com/v1 · Ollama: http://host:11434/v1"
+                       {% if ai_public.globally_disabled %}disabled{% endif %}>
+            </div>
+
+            <div class="form-group">
+                <label for="model">Model name</label>
+                <input type="text" class="form-control font-monospace small" name="model" id="model"
+                       value="{{ ai_public.model }}"
+                       placeholder="e.g. gpt-4o-mini, claude-3-5-sonnet-latest"
+                       {% if ai_public.globally_disabled %}disabled{% endif %}>
+            </div>
+
+            <div class="form-group">
+                <label for="anthropic_version">Anthropic API version <span class="text-muted font-weight-normal">(Anthropic only)</span></label>
+                <input type="text" class="form-control font-monospace small" name="anthropic_version" id="anthropic_version"
+                       value="{{ ai_public.anthropic_version }}"
+                       {% if ai_public.globally_disabled %}disabled{% endif %}>
+            </div>
+
+            <button type="submit" class="btn btn-primary" {% if ai_public.globally_disabled %}disabled{% endif %}>Save settings</button>
+            <a href="{{ url_for('main.py_admin') }}" class="btn btn-outline-secondary ml-2">Back</a>
+        </form>
+
+        <div class="py-panel mb-4">
+            <h2 class="h6 font-weight-bold">Usage</h2>
+            <ol class="small text-muted pl-3 mb-0">
+                <li>Open a database, then use <strong>SQL</strong> in the sidebar.</li>
+                <li>Describe what you want in plain language; the assistant suggests a read-only <code>SELECT</code>.</li>
+                <li>Review and run the query yourself — generated SQL is not guaranteed correct.</li>
+            </ol>
+        </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -1,33 +1,37 @@
-<form name="database_actions" method="POST" action="drop_database">
-    <table class="table table-bordered mt-4">
-        <thead>
-            <tr>
-                <th><input type="checkbox" name="check_all_db" id="check_all_db"> </th>
-                <th>Databases</th>
-                <th>Collation</th>
-                <th>Tables</th>
-                <th>Size</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for database in databases %}
-            <tr>
-                <td><input type="checkbox" name="db_name" class="db_check" value="{{database['SCHEMA_NAME']}}"></td>
-                <td><a href="?database={{database['SCHEMA_NAME']}}">{{database['SCHEMA_NAME']}}</a></td>
-                <td>{{database['DEFAULT_COLLATION_NAME']}}</td>
-                <td>{{database['TABLES_COUNT']}}</td>
-                <td>
-                    {% if database['SCHEMA_SIZE'] %}
-                        {{(database['SCHEMA_SIZE']/(1024))|int}} KB
-                    {% else %}
-                        0 KB
-                    {% endif %}
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <div class="col-md-2 p-4 hide">
-        <button class="btn btn-secondary btn-sm" id="drop_databases"> Drop </button>
+<form id="database_actions" name="database_actions" method="POST" action="/drop_database">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped table-hover datatable mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 2.5rem;"><input type="checkbox" name="check_all_db" id="check_all_db" title="Select all"></th>
+                    <th>Databases</th>
+                    <th>Collation</th>
+                    <th>Tables</th>
+                    <th>Size</th>
+                    <th>Export</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for database in databases %}
+                <tr>
+                    <td><input type="checkbox" name="db_name" class="db_check" value="{{ database['SCHEMA_NAME'] }}"></td>
+                    <td><a href="?database={{ database['SCHEMA_NAME'] }}">{{ database['SCHEMA_NAME'] }}</a></td>
+                    <td>{{ database['DEFAULT_COLLATION_NAME'] }}</td>
+                    <td>{{ database['TABLES_COUNT'] }}</td>
+                    <td>
+                        {% if database['SCHEMA_SIZE'] %}
+                            {{ (database['SCHEMA_SIZE'] / (1024))|int }} KB
+                        {% else %}
+                            0 KB
+                        {% endif %}
+                    </td>
+                    <td class="text-nowrap">
+                        <a class="btn btn-outline-secondary btn-sm py-0 px-2" href="{{ url_for('main.export_database_sql', database=database['SCHEMA_NAME']) }}" title="Data export (INSERTs); up to 100000 rows per base table">SQL</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 </form>

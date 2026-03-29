@@ -1,2 +1,12 @@
 .idea/
 /venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+instance/

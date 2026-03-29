@@ -9,9 +9,11 @@
       </div>
       <div class="modal-body" id="edit_form">
       <div class="">
-      <form method="POST" action="/update_table_data_by_id" id="edit_row_form">
+      <form method="POST" action="/update_table_data" id="edit_row_form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="database" value="{{ selected_db }}">
           <input type="hidden" name="table_name" value="{{ selected_table }}">
+          <input type="hidden" name="pk_json" id="pk_json_field" value="">
         {% for structure in table_columns %}
           <div class="col-md-12">
               <label>
@@ -39,15 +41,19 @@
 <script type="text/javascript">
     $(document).ready(function(){
        $(document).on('click','.edit_row',function (){
+           let pkRaw = $(this).closest('tr').attr('data-pk');
+           $('#pk_json_field').val(pkRaw || '{}');
            $(this).closest('tr').find('td').each(function(){
                let val = $.trim($(this).html());
                if (!val || val == "None"){
                    val = '';
                }
-               if($('input[name='+$(this).attr('column_name')+']').length > 0) {
-                   $('input[name=' + $(this).attr('column_name') + ']').val(val);
-               }else if($('textarea[name='+$(this).attr('column_name')+']').length > 0){
-                   $('textarea[name=' + $(this).attr('column_name') + ']').val(val);
+               let cn = $(this).attr('column_name');
+               if (!cn) return;
+               if($('input[name="'+cn+'"]').length > 0) {
+                   $('input[name="' + cn + '"]').val(val);
+               }else if($('textarea[name="'+cn+'"]').length > 0){
+                   $('textarea[name="' + cn + '"]').val(val);
                }
            })
             $('#edit_table_data_modal').modal('show');

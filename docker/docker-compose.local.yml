@@ -1,0 +1,50 @@
+# Local stack: PyAdminer + MySQL (no external Docker network required).
+#
+# Start / rebuild:
+#   make docker-local
+#   docker compose -f docker/docker-compose.local.yml up --build -d
+#
+# Live reload: repo is bind-mounted at /app and FLASK_DEBUG=1 enables the dev reloader
+# for Python changes. Re-run `make docker-local` (or `up --build`) after changing
+# requirements.txt or docker/Dockerfile.
+#
+# Login in the UI:
+#   Server: mysql   User: root   Password: root   Database: demo (optional)
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: demo
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    volumes:
+      - pyadminer_mysql_data:/var/lib/mysql
+
+  py-adminer:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: py-adminer-local
+    ports:
+      - "8080:5000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-dev-docker-secret-change-me}
+      FLASK_DEBUG: "1"
+      FLASK_RUN_HOST: "0.0.0.0"
+      PYADMINER_DEFAULT_MYSQL_HOST: mysql
+    volumes:
+      # Live code from host (no image rebuild for .py / templates / static)
+      - ..:/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  pyadminer_mysql_data:

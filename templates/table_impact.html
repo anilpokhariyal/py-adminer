@@ -1,0 +1,88 @@
+<div class="py-panel mb-3">
+    <h2 class="py-section-title">Impact: {{ selected_table }}</h2>
+    <p class="text-muted small mb-0">Foreign keys pointing to this table, plus views and routines whose definitions mention the table name (heuristic).</p>
+</div>
+
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Incoming foreign keys</h3>
+    <p class="small text-muted">Other tables in this database that reference <strong>{{ selected_table }}</strong>.</p>
+    {% if viz_impact.incoming|length %}
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead><tr><th>Table</th><th>Column</th><th>Constraint</th><th>References column</th></tr></thead>
+            <tbody>
+                {% for r in viz_impact.incoming %}
+                <tr>
+                    <td><a href="?database={{ selected_db }}&amp;table={{ r['TABLE_NAME'] }}">{{ r['TABLE_NAME'] }}</a></td>
+                    <td>{{ r['COLUMN_NAME'] }}</td>
+                    <td>{{ r['CONSTRAINT_NAME'] }}</td>
+                    <td>{{ r['REFERENCED_COLUMN_NAME'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">No incoming foreign keys found.</p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Outgoing foreign keys (this table)</h3>
+    {% if table_foreign_keys|length %}
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead><tr><th>Column</th><th>Referenced table</th><th>Referenced column</th><th>Constraint</th></tr></thead>
+            <tbody>
+                {% for r in table_foreign_keys %}
+                <tr>
+                    <td>{{ r['COLUMN_NAME'] }}</td>
+                    <td>
+                        {% if r['REFERENCED_TABLE_SCHEMA'] == selected_db %}
+                        <a href="?database={{ selected_db }}&amp;table={{ r['REFERENCED_TABLE_NAME'] }}">{{ r['REFERENCED_TABLE_NAME'] }}</a>
+                        {% else %}
+                        {{ r['REFERENCED_TABLE_SCHEMA'] }}.{{ r['REFERENCED_TABLE_NAME'] }}
+                        {% endif %}
+                    </td>
+                    <td>{{ r['REFERENCED_COLUMN_NAME'] }}</td>
+                    <td>{{ r['CONSTRAINT_NAME'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">No outgoing foreign keys on this table.</p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Views mentioning this table</h3>
+    {% if viz_impact.views|length %}
+    <ul class="mb-0 small">
+        {% for r in viz_impact.views %}
+        <li><a href="?database={{ selected_db }}&amp;table={{ r['view_name'] }}">{{ r['view_name'] }}</a></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted small mb-0">None found (name match in <code>VIEW_DEFINITION</code>).</p>
+    {% endif %}
+</div>
+
+<div class="py-panel mb-4">
+    <h3 class="h6 font-weight-bold">Routines mentioning this table</h3>
+    {% if viz_impact.routines|length %}
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped mb-0">
+            <thead><tr><th>Name</th><th>Type</th></tr></thead>
+            <tbody>
+                {% for r in viz_impact.routines %}
+                <tr><td>{{ r['ROUTINE_NAME'] }}</td><td>{{ r['ROUTINE_TYPE'] }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">None found (name match in <code>ROUTINE_DEFINITION</code>).</p>
+    {% endif %}
+</div>

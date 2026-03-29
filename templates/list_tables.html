@@ -1,32 +1,45 @@
-<table class="table table-bordered mt-4 datatable">
-    <thead>
-        <tr>
-            <th>Tables</th>
-            <th>Engine</th>
-            <th>Collection</th>
-            <th>Rows</th>
-            <th>Data Length</th>
-            <th>Index Length</th>
-            <th>Auto Increment</th>
-            <th>Comment</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for table in tables %}
-        <tr>
-            <td>
-                <a href="?database={{selected_db}}&table={{table['TABLE_NAME']}}">
-                {{table['TABLE_NAME']}}
-                </a>
-            </td>
-            <td>{{table['ENGINE']}}</td>
-            <td>{{table['TABLE_COLLATION']}}</td>
-            <td>{{table['TABLE_ROWS']}}</td>
-            <td>{{table['DATA_LENGTH']}}</td>
-            <td>{{table['INDEX_LENGTH']}}</td>
-            <td>{{table['AUTO_INCREMENT']}}</td>
-            <td>{{table['TABLE_COMMENT']}}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<div class="py-panel">
+    <h2 class="py-section-title mb-0">Tables</h2>
+    <p class="text-muted small mb-3">Schema objects in <strong>{{ selected_db }}</strong></p>
+    <div class="py-table-wrap">
+        <table class="table table-sm table-striped table-hover datatable mb-0">
+            <thead>
+                <tr>
+                    <th>Tables</th>
+                    <th>Engine</th>
+                    <th>Collection</th>
+                    <th>Rows</th>
+                    <th>Data Length</th>
+                    <th>Index Length</th>
+                    <th>Auto Increment</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for table in tables %}
+                <tr>
+                    <td>
+                        <a href="?database={{ selected_db }}&table={{ table['TABLE_NAME'] }}">{{ table['TABLE_NAME'] }}</a>
+                    </td>
+                    <td>{{ table['ENGINE'] }}</td>
+                    <td>{{ table['TABLE_COLLATION'] }}</td>
+                    <td>{{ table['TABLE_ROWS'] }}</td>
+                    <td>{{ table['DATA_LENGTH'] }}</td>
+                    <td>{{ table['INDEX_LENGTH'] }}</td>
+                    <td>{{ table['AUTO_INCREMENT'] }}</td>
+                    <td>{{ table['TABLE_COMMENT'] }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8" class="text-muted">
+                        No tables in this database.
+                        <a href="?create=table&database={{ selected_db }}">Create a table</a>
+                        or use
+                        <a href="?database={{ selected_db }}&sql_panel=1">SQL command</a>.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

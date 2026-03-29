@@ -1,0 +1,63 @@
+<div class="py-panel mb-3">
+    <h2 class="py-section-title mb-2">Database relationship diagram</h2>
+    <p class="text-muted small mb-2">
+        Built from <code>information_schema</code>: all tables and views in <strong>{{ selected_db }}</strong>, columns (PK / UK / AI),
+        and foreign keys within this database. Lines run from the child table (FK side) to the referenced parent.
+    </p>
+    <div class="d-flex flex-wrap align-items-center" style="gap: 0.5rem;">
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('main.export_diagram_mmd', database=selected_db) }}">Download .mmd (Mermaid)</a>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="diagram_export_svg" {% if not mermaid_diagram %}disabled{% endif %}>Download SVG</button>
+    </div>
+</div>
+
+{% for w in diagram_warnings %}
+<div class="alert alert-secondary border small mb-2 py-2">{{ w }}</div>
+{% endfor %}
+
+{% if not mermaid_diagram %}
+<div class="py-panel text-muted">No diagram data (empty schema or could not read metadata).</div>
+{% else %}
+<script type="application/json" id="py-erd-mermaid-json">{{ mermaid_diagram | tojson }}</script>
+<div id="py-mermaid-host" class="py-diagram-host border rounded bg-white p-2 mb-3" style="overflow: auto; max-height: min(85vh, 1200px); min-height: 320px;"></div>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js" crossorigin="anonymous"></script>
+<script>
+(function () {
+  var raw = document.getElementById("py-erd-mermaid-json");
+  if (!raw) return;
+  var def = JSON.parse(raw.textContent);
+  var host = document.getElementById("py-mermaid-host");
+  if (!host || !def) return;
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: "neutral",
+    securityLevel: "loose",
+    flowchart: { useMaxWidth: true },
+    er: { useMaxWidth: false }
+  });
+  var id = "py-erd-" + Date.now();
+  mermaid.render(id, def).then(function (out) {
+    host.innerHTML = out.svg;
+  }).catch(function (e) {
+    host.innerHTML = "<p class='text-danger small p-3'>Could not render diagram. Try downloading the .mmd file and opening it in the Mermaid Live Editor, or simplify the schema.</p><pre class='small'>" + String(e && e.message ? e.message : e) + "</pre>";
+  });
+  var btn = document.getElementById("diagram_export_svg");
+  if (btn) {
+    btn.addEventListener("click", function () {
+      var svg = host.querySelector("svg");
+      if (!svg) return;
+      var xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + svg.outerHTML;
+      var blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "{{ selected_db }}_diagram.svg";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  }
+})();
+</script>
+{% endif %}
+
+<p class="text-muted small mb-0">
+    Tip: edit <code>.mmd</code> in <a href="https://mermaid.live" target="_blank" rel="noopener">Mermaid Live Editor</a> for layouts or export to PNG/PDF from there.
+</p>

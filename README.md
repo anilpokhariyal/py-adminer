@@ -11,10 +11,11 @@ for your OS.<br>
 <strong>Step 3:</strong> Set flask_app env by executing command: "export FLASK_APP=main.py"<br>
 <strong>Step 4:</strong> Run your application by command: "FLASK run".
 
-<strong>Note :</strong> If you want to change the port or IP on which app is running, you can update that on main.py file.
-find <strong>"app.run(host="0.0.0.0", port=5000)"</strong> at bottom of main.py
+<strong>Note:</strong> Bind address and port for local runs use environment variables <code>FLASK_RUN_HOST</code> and <code>FLASK_RUN_PORT</code> (defaults <code>0.0.0.0:5000</code>). Set a stable <code>SECRET_KEY</code> in production. Optional: <code>PYADMINER_READ_ONLY</code>, <code>PYADMINER_AUTH_USERNAME</code> / <code>PYADMINER_AUTH_PASSWORD</code>, <code>RATELIMIT_STORAGE_URI</code>. See <a href="docs/PROJECT_IMPROVEMENT_PLAN.md">docs/PROJECT_IMPROVEMENT_PLAN.md</a>.
+
+<p><strong>Dependencies:</strong> <code>mysqlclient</code> needs MySQL/MariaDB client headers (e.g. on Ubuntu: <code>sudo apt install default-libmysqlclient-dev pkg-config</code>). Then: <code>pip install -e .</code> or <code>pip install -r requirements.txt</code>.</p>
 
 
 <p>
-  If you want to setup pyadminer in a docker environment, docker files are created for that, you can directly run setup-docker.sh file. please confirm configration before running docker container.
+  <strong>Docker (local):</strong> from the repo root run <code>make docker-local</code> (or <code>docker compose -f docker/docker-compose.local.yml up --build -d</code>). App: <code>http://127.0.0.1:8080</code>. The compose file bind-mounts the project and enables <code>FLASK_DEBUG=1</code> so Python/template edits reload without rebuilding; rebuild with the same command after changing <code>requirements.txt</code> or <code>docker/Dockerfile</code>. Use <code>make docker-local-restart</code> to restart only the app container. The older Laradock-oriented <code>setup-docker.sh</code> / <code>docker/docker-compose.yml</code> is optional.
   </p>
