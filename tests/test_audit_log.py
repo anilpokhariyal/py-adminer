@@ -43,9 +43,7 @@ def test_read_audit_entries_tail_and_filters(limit):
         assert len(entries) == limit
         assert entries[0]["ts"] >= entries[1]["ts"]
 
-        entries2, _ = read_audit_entries(
-            path, limit=50, action_contains="sql", max_scan_bytes=4096
-        )
+        entries2, _ = read_audit_entries(path, limit=50, action_contains="sql", max_scan_bytes=4096)
         for e in entries2:
             assert "sql" in e["action"].lower()
 

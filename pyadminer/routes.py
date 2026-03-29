@@ -131,9 +131,7 @@ def _database_sql_dump_body(conn, database: str) -> str:
     tables = _list_base_tables(conn, database)
     parts = [
         f"-- PyAdminer database export `{database}`",
-        "-- Row cap per table: "
-        + str(_EXPORT_ROW_LIMIT)
-        + " (increase in code if you need more).",
+        "-- Row cap per table: " + str(_EXPORT_ROW_LIMIT) + " (increase in code if you need more).",
         "SET NAMES utf8mb4;",
         "SET FOREIGN_KEY_CHECKS=0;",
         f"USE {quote_ident(database)};",
@@ -199,9 +197,7 @@ def _require_mysql_session():
     except Exception as exc:
         current_app.logger.warning("MySQL connection failed: %s", exc)
         detail = format_mysql_error(exc)
-        session["error"] = (
-            f"{_CONNECT_FAILED_MSG} ({detail})" if detail else _CONNECT_FAILED_MSG
-        )
+        session["error"] = f"{_CONNECT_FAILED_MSG} ({detail})" if detail else _CONNECT_FAILED_MSG
         for key in ("system", "host", "user", "password", "database", "pass"):
             session.pop(key, None)
         return None
@@ -960,9 +956,7 @@ def py_admin():
                     mermaid_diagram = ""
                     diagram_warnings = ["Invalid database name for diagram."]
 
-        if selected_db and arg_table and (
-            not action or action == "alter" or viz_mode
-        ):
+        if selected_db and arg_table and (not action or action == "alter" or viz_mode):
             table_name = arg_table
             selected_table = table_name
             run_sql(connection, "USE information_schema;")
@@ -998,9 +992,7 @@ def py_admin():
             table_foreign_keys = fetch_all(fk_cur) if fk_cur else []
 
             if viz_mode == "impact":
-                viz_impact["incoming"] = viz_logic.fk_incoming(
-                    connection, selected_db, table_name
-                )
+                viz_impact["incoming"] = viz_logic.fk_incoming(connection, selected_db, table_name)
                 viz_impact["views"] = viz_logic.views_referencing(
                     connection, selected_db, table_name
                 )
@@ -1110,10 +1102,7 @@ def py_admin():
             wide_text_column_names = [
                 c["COLUMN_NAME"]
                 for c in table_columns
-                if any(
-                    x in (c.get("COLUMN_TYPE") or "").lower()
-                    for x in ("char", "text", "blob")
-                )
+                if any(x in (c.get("COLUMN_TYPE") or "").lower() for x in ("char", "text", "blob"))
                 and c["COLUMN_NAME"] not in json_column_names
             ]
 
@@ -1273,10 +1262,7 @@ def logout():
     if session.get("pass"):
         audit_event(
             "logout",
-            "user="
-            + str(session.get("user", ""))
-            + " host="
-            + str(session.get("host", "")),
+            "user=" + str(session.get("user", "")) + " host=" + str(session.get("host", "")),
         )
     for key in ("system", "host", "user", "password", "database", "pass"):
         session.pop(key, None)

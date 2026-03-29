@@ -78,7 +78,11 @@ def test_build_mermaid_er_diagram_contains_entities_and_relationship():
             "cols": [("customer_id", "id")],
         }
     ]
-    text = build_mermaid_er_diagram(tables_cols, fk_groups, {"orders": "BASE TABLE", "customers": "BASE TABLE"})
+    text = build_mermaid_er_diagram(
+        tables_cols,
+        fk_groups,
+        {"orders": "BASE TABLE", "customers": "BASE TABLE"},
+    )
     assert "erDiagram" in text
     assert "customers {" in text
     assert "orders {" in text

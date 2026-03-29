@@ -62,9 +62,7 @@ def register_viz_routes(bp):
                 lim = int(request.args.get("limit", 90))
             except (TypeError, ValueError):
                 lim = 90
-            return jsonify(
-                vl.chart_timeseries(conn, database, table, column, limit=lim)
-            )
+            return jsonify(vl.chart_timeseries(conn, database, table, column, limit=lim))
 
         if kind == "scatter":
             try:
@@ -76,9 +74,7 @@ def register_viz_routes(bp):
                 lim = int(request.args.get("limit", 500))
             except (TypeError, ValueError):
                 lim = 500
-            return jsonify(
-                vl.chart_scatter(conn, database, table, cx, cy, limit=lim)
-            )
+            return jsonify(vl.chart_scatter(conn, database, table, cx, cy, limit=lim))
 
         return jsonify({"error": "Unknown chart kind"}), 400
 
@@ -103,7 +99,5 @@ def register_viz_routes(bp):
         except (TypeError, ValueError):
             lim = 2000
         return jsonify(
-            vl.pivot_aggregate(
-                conn, database, table, row_c, col_c, val_c, agg, limit=lim
-            )
+            vl.pivot_aggregate(conn, database, table, row_c, col_c, val_c, agg, limit=lim)
         )

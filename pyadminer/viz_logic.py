@@ -82,11 +82,7 @@ def column_profile(conn, database: str, table: str, column: str) -> dict[str, An
         "distinct_count": int(distinct) if distinct is not None else None,
         "errors": [x for x in (e1, e2, e3) if x],
     }
-    if (
-        out["row_count"] is not None
-        and out["row_count"] > 0
-        and null_count is not None
-    ):
+    if out["row_count"] is not None and out["row_count"] > 0 and null_count is not None:
         out["null_pct"] = round(100.0 * null_count / out["row_count"], 3)
 
     if mysql_column_type_is_numeric(ct) or mysql_column_type_is_temporal(ct):
@@ -131,10 +127,7 @@ def chart_categorical(
     qt = quote_ident(table)
     qc = quote_ident(column)
     run_sql(conn, f"USE {qdb};")
-    sql = (
-        f"SELECT {qc} AS k, COUNT(*) AS c FROM {qt} "
-        f"GROUP BY {qc} ORDER BY c DESC LIMIT {lim}"
-    )
+    sql = f"SELECT {qc} AS k, COUNT(*) AS c FROM {qt} GROUP BY {qc} ORDER BY c DESC LIMIT {lim}"
     cur, err = run_sql(conn, sql, store_error=False)
     if err or not cur:
         return {"error": err or "query failed", "labels": [], "values": []}
@@ -191,9 +184,7 @@ def chart_scatter(
     cty = get_column_type(conn, database, table, column_y)
     if not ctx or not cty:
         return {"error": "Unknown column"}
-    if not (
-        mysql_column_type_is_numeric(ctx) and mysql_column_type_is_numeric(cty)
-    ):
+    if not (mysql_column_type_is_numeric(ctx) and mysql_column_type_is_numeric(cty)):
         return {"error": "Scatter requires two numeric columns"}
 
     validate_mysql_identifier(database)
@@ -254,10 +245,7 @@ def pivot_aggregate(
     qv = quote_ident(value_column)
 
     run_sql(conn, f"USE {qdb};")
-    sql = (
-        f"SELECT {qr} AS r, {qc} AS c, {a}({qv}) AS v FROM {qt} "
-        f"GROUP BY {qr}, {qc} LIMIT {lim}"
-    )
+    sql = f"SELECT {qr} AS r, {qc} AS c, {a}({qv}) AS v FROM {qt} GROUP BY {qr}, {qc} LIMIT {lim}"
     cur, err = run_sql(conn, sql, store_error=False)
     if err or not cur:
         return {"error": err or "query failed", "cells": []}
@@ -402,9 +390,7 @@ def list_table_columns(conn, database: str, table: str) -> set[str]:
     return {r["COLUMN_NAME"] for r in fetch_all(cur)}
 
 
-def table_diff_summary(
-    conn, database: str, table_a: str, table_b: str
-) -> dict[str, Any]:
+def table_diff_summary(conn, database: str, table_a: str, table_b: str) -> dict[str, Any]:
     validate_mysql_identifier(database)
     validate_mysql_identifier(table_a)
     validate_mysql_identifier(table_b)

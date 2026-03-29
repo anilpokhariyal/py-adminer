@@ -15,11 +15,7 @@ def format_mysql_error(err) -> str:
         s = err.strip()
         try:
             parsed = ast.literal_eval(s)
-            if (
-                isinstance(parsed, tuple)
-                and len(parsed) == 2
-                and isinstance(parsed[0], int)
-            ):
+            if isinstance(parsed, tuple) and len(parsed) == 2 and isinstance(parsed[0], int):
                 return f"MySQL error {parsed[0]}: {parsed[1]}"
         except (SyntaxError, ValueError, TypeError):
             pass

@@ -12,11 +12,14 @@ This is a high-level checklist. PyAdminer targets a **MySQL-only**, **Flask + se
 - List databases (sizes, collations)
 - Create / rename (alter path) / drop databases
 - List tables, table structure (columns, indexes, FKs)
-- Browse data with filters, order, limit
+- Browse data with filters, order, limit (with optional numeric heatmap and JSON/long-text cell expanders)
 - Edit / delete rows (by primary key)
-- Raw SQL panel
-- Export table as CSV or SQL INSERTs
-- CSRF, read-only mode, optional Basic Auth, rate limits (see improvement plan)
+- Raw SQL panel; optional **AI** natural-language assistant (suggested read-only `SELECT`, user-reviewed)
+- **Visualize** / **Impact** / **Quality** / **Diff** table tabs (profiles, charts, pivot, dependencies, data checks)
+- Database **diagram** (Mermaid) and **Advanced** panel (views, routines, triggers, events)
+- Export table as CSV or SQL INSERTs; database SQL export (row-capped)
+- **Activity log** (audit JSON tail + download)
+- CSRF, read-only mode, optional Basic Auth, rate limits (see improvement plan); `/health` for probes
 
 ## Common in Adminer / phpMyAdmin, missing or partial here
 
@@ -24,13 +27,13 @@ This is a high-level checklist. PyAdminer targets a **MySQL-only**, **Flask + se
 |------|----------------------|-----------|
 | **Engines** | PostgreSQL, SQLite, … | MySQL only |
 | **Import** | SQL/CSV upload | Not implemented |
-| **Routine SQL** | `SHOW CREATE TABLE`, triggers, events, views, procedures | Partial (raw SQL only; no dedicated UI) |
+| **Routine SQL** | `SHOW CREATE TABLE`, triggers, events, views, procedures | **Advanced** panel lists views/routines/triggers/events; deep DDL editing still via raw SQL |
 | **User / privileges** | Grant UI | Not implemented |
 | **Search** | Search all tables in DB | Per-table filters only |
 | **Copy / move table** | Yes | Not implemented |
 | **Table maintenance** | Optimize, repair, check | Not implemented |
-| **Designer / relations graph** | phpMyAdmin | Not implemented |
-| **Query builder** | Some | Not implemented |
+| **Designer / relations graph** | phpMyAdmin | **Diagram** (Mermaid ER) for relationships |
+| **Query builder** | Some | Not implemented (optional NL→SQL via **AI** assistant) |
 | **Bookmarks / history** | phpMyAdmin | Not implemented |
 | **Two-factor / SSO** | Varies | Optional Basic Auth only |
 | **BLOB preview / upload** | Yes | Basic text fields in forms |

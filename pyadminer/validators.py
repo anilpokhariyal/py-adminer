@@ -43,18 +43,12 @@ _MUTATING_SQL_PREFIXES = (
 
 def mysql_column_type_is_numeric(column_type: str) -> bool:
     t = (column_type or "").lower()
-    return any(
-        x in t for x in ("int", "decimal", "numeric", "float", "double", "real", "bit")
-    )
+    return any(x in t for x in ("int", "decimal", "numeric", "float", "double", "real", "bit"))
 
 
 def mysql_column_type_is_temporal(column_type: str) -> bool:
     t = (column_type or "").lower()
-    return (
-        "date" in t
-        or "time" in t
-        or t.startswith("year")
-    )
+    return "date" in t or "time" in t or t.startswith("year")
 
 
 def mysql_column_type_is_json(column_type: str) -> bool:

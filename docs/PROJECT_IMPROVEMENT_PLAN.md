@@ -28,6 +28,11 @@ This document summarizes the industry-oriented upgrades applied to the project. 
 - Table structure view includes **indexes** (`information_schema.STATISTICS`) and **foreign keys** (`KEY_COLUMN_USAGE`).
 - Row **edit/delete** use real **primary keys** (including composite); JSON payload / hidden `pk_json`.
 - **Export** table as CSV or SQL (`/export/csv` and `/export/sql`).
+- **Database diagram** (Mermaid ER) and **Advanced** panel: views, routines, triggers, events (with safe drop helpers where applicable).
+- **Visualization** (`viz` query param): column **profile** API, **charts** (categorical, time series, scatter), **pivot** `GROUP BY`; **Impact** (incoming FKs, views/routines mentioning the table), **Quality** (PK duplicate groups, FK orphan counts), **Diff** (column overlap and optional `EXCEPT` row counts).
+- **Data** grid: optional **numeric heatmap**, **JSON** and long-text **expand** cells.
+- **AI assistant** (optional): settings page for provider, API key, model, and enable/disable; **natural language → suggested `SELECT`** on the SQL panel (OpenAI, Anthropic, or OpenAI-compatible API). Encrypted settings file under `instance/` (or `PYADMINER_AI_SETTINGS_PATH`). Server can force-disable with `PYADMINER_AI_DISABLE`.
+- **Activity log** UI for JSON audit tail + download; sidebar navigation uses `url_for` so links work from `/py_adminer/audit_log` and `/py_adminer/ai_settings`.
 
 ## Hardening (optional via env)
 
@@ -47,4 +52,7 @@ This document summarizes the industry-oriented upgrades applied to the project. 
 | `PYADMINER_READ_ONLY` | Read-only mode |
 | `PYADMINER_AUTH_USERNAME` / `PYADMINER_AUTH_PASSWORD` | Optional Basic Auth |
 | `RATELIMIT_ENABLED`, `RATELIMIT_STORAGE_URI` | Rate limiting |
+| `PYADMINER_AUDIT_LOG_PATH`, `PYADMINER_AUDIT_MAX_QUERY_CHARS` | Audit log file path and per-line SQL cap |
+| `PYADMINER_AI_DISABLE`, `PYADMINER_AI_SETTINGS_PATH` | Disable AI globally; custom encrypted settings path |
+| `PYADMINER_DEFAULT_MYSQL_HOST` | Prefill MySQL host on login form |
 | `MYSQL_TEST_*` | Integration tests in CI |

@@ -48,9 +48,7 @@ def group_foreign_keys(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         k = (child, parent, cname)
         if k not in groups:
             key_order.append(k)
-        groups[k].append(
-            (str(r.get("COLUMN_NAME", "")), str(r.get("REFERENCED_COLUMN_NAME", "")))
-        )
+        groups[k].append((str(r.get("COLUMN_NAME", "")), str(r.get("REFERENCED_COLUMN_NAME", ""))))
     out = []
     for k in key_order:
         child, parent, cname = k
